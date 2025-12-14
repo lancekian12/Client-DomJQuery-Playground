@@ -1,24 +1,92 @@
+/* index.css (v4-friendly) ---------------------------------- */
+
+/* Tailwind v4 import (use this if @tailwind directives cause errors) */
 @import "tailwindcss";
 
+/* ===========================
+   Light mode (default)
+   =========================== */
 :root {
+  /* page */
+  --page-bg: #f8fafc;       /* tailwind slate-50 */
+  --page-text: #0f1724;     /* tailwind slate-900 */
+
+  /* header (kept visually similar to your current header if you opt in) */
+  --header-bg: rgba(255,255,255,0.06); /* subtle light header backing */
+  --header-text: #0f1724;
+
+  /* cards / panels */
+  --card-bg: #ffffff;
+  --card-border: #e6edf3;
+  --muted: #64748b;         /* slate-500-ish for secondary text */
+
+  /* accent (keeps your current sky color feel) */
+  --accent: #0ea5e9;        /* sky-500 */
+
   --transition-duration: 200ms;
 }
 
+/* ===========================
+   Dark mode overrides
+   Toggle by adding `dark` to <html> (document.documentElement)
+   =========================== */
+.dark {
+  /* page */
+  --page-bg: #0b1220;       /* deep slate/near-slate-950 */
+  --page-text: #e6eef8;     /* light text for dark mode */
+
+  /* header */
+  --header-bg: rgba(15,23,36,0.95); /* similar to your dark header */
+  --header-text: #e6eef8;
+
+  /* cards / panels */
+  --card-bg: rgba(15,23,36,0.45); /* transparent dark panel like bg-slate-800/40 */
+  --card-border: #1f2937;        /* slate-800 border */
+  --muted: #94a3b8;              /* slate-400-ish */
+
+  /* accent */
+  --accent: #38bdf8;            /* sky-400 / slightly brighter */
+}
+
+/* ===========================
+   Apply variables to the document root (visible immediately)
+   This changes the page background + text without touching your Tailwind classes.
+   =========================== */
 html, body, #root {
   height: 100%;
-}
-
-/* optional global utilities */
-* { box-sizing: border-box; }
-
-html {
+  background-color: var(--page-bg);
+  color: var(--page-text);
+  transition: background-color var(--transition-duration), color var(--transition-duration);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
 }
 
-/* small helper so theme changes feel nicer */
-html,
-body,
-#root {
-  transition: background-color var(--transition-duration), color var(--transition-duration);
-}
+/* ===========================
+   Utility classes you can use anywhere
+   - .bg-page/.text-page make elements follow the active theme
+   - .header-bg / .header-text let you opt your header into the theme vars
+   - .card-bg / .card-border for panels
+   =========================== */
+.bg-page { background-color: var(--page-bg) !important; }
+.text-page { color: var(--page-text) !important; }
+
+.header-bg { background-color: var(--header-bg) !important; }
+.header-text { color: var(--header-text) !important; }
+
+.card-bg { background-color: var(--card-bg) !important; }
+.card-border { border-color: var(--card-border) !important; }
+
+.muted { color: var(--muted) !important; }
+.accent { color: var(--accent) !important; }
+
+/* ===========================
+   Optional: small helpers for components that should always follow the theme
+   (Add these classes to elements you want to change automatically.)
+   =========================== */
+.app-root { min-height: 100vh; background-color: var(--page-bg); color: var(--page-text); }
+.panel { background-color: var(--card-bg); border: 1px solid var(--card-border); }
+
+/* ---------------------------
+   End of file
+   --------------------------- */
