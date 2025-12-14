@@ -315,18 +315,6 @@ export default function LiveSource({
                 >
                   <FiCopy className="inline-block mr-1" /> Copy
                 </button>
-                <button
-                  className={isDark ? "text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50" : "text-xs px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-100"}
-                  onClick={() => {
-                    setCode(defaultCode);
-                    appendEvent({
-                      text: "> restored default demo code",
-                      type: "muted",
-                    });
-                  }}
-                >
-                  Restore
-                </button>
               </div>
             </div>
 
