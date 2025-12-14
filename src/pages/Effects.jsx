@@ -25,7 +25,7 @@ const EASING_MAP = {
   swing: "cubic-bezier(.42,.0,.58,1)",
 };
 
-export default function EffectsLiveCode() {
+export default function Effects() {
   const [duration, setDuration] = useState(400);
   const [easing, setEasing] = useState("swing");
   const [callbackStatus, setCallbackStatus] = useState("Idle");
@@ -564,9 +564,9 @@ export default function EffectsLiveCode() {
 
   // ---------- UI JSX ----------
   return (
-    <main className="min-h-screen p-6  text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <main className="min-h-screen p-4 sm:p-6 text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
       <div className="max-w-[1200px] mx-auto space-y-6">
-        <header className="flex items-center justify-between">
+        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white">jQuery Effects & Animations — Live Lab</h1>
             <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">
@@ -585,7 +585,8 @@ export default function EffectsLiveCode() {
           {/* 1: Fading */}
           <section className="rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-4 transition-colors duration-200">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3"><div className="p-2 rounded bg-slate-50 dark:bg-slate-900/40"><MdBlurOn /></div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded bg-slate-50 dark:bg-slate-900/40"><MdBlurOn /></div>
                 <div>
                   <div className="text-xs text-slate-500 dark:text-slate-400">1. Fading Effects</div>
                   <div className="text-sm font-semibold text-slate-900 dark:text-white">Opacity transitions (fadeIn / fadeOut)</div>
@@ -595,22 +596,25 @@ export default function EffectsLiveCode() {
             </div>
 
             <div className="mt-4 flex items-center justify-center">
-              <div id="box1" className="w-[110px] h-[110px] rounded-xl flex items-center justify-center font-bold text-white bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg">.box</div>
+              {/* responsive sizing for box */}
+              <div id="box1" className="w-20 h-20 sm:w-[110px] sm:h-[110px] rounded-xl flex items-center justify-center font-bold text-white bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg text-sm sm:text-base">.box</div>
             </div>
 
             <pre className="mt-4 bg-slate-50 border border-slate-200 text-xs p-3 rounded text-slate-700 dark:bg-slate-900/40 dark:border-slate-700 dark:text-slate-300">{`$('.box').fadeToggle( 'slow' );`}</pre>
 
-            <div className="mt-4 flex gap-3">
-              <button onClick={() => fadeInBox("box1")} className="flex-1 rounded px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white">Fade In</button>
-              <button onClick={() => fadeOutBox("box1")} className="flex-1 rounded px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white">Fade Out</button>
-              <button onClick={() => fadeToggleBox("box1")} className="flex-1 rounded px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white">Toggle</button>
+            {/* buttons stack on mobile */}
+            <div className="mt-4 flex flex-col sm:flex-row gap-3">
+              <button onClick={() => fadeInBox("box1")} className="w-full sm:flex-1 rounded px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white">Fade In</button>
+              <button onClick={() => fadeOutBox("box1")} className="w-full sm:flex-1 rounded px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white">Fade Out</button>
+              <button onClick={() => fadeToggleBox("box1")} className="w-full sm:flex-1 rounded px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white">Toggle</button>
             </div>
           </section>
 
           {/* 2: Sliding */}
           <section className="rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-4 transition-colors duration-200">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3"><div className="p-2 rounded bg-slate-50 dark:bg-slate-900/40"><MdFlip /></div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded bg-slate-50 dark:bg-slate-900/40"><MdFlip /></div>
                 <div>
                   <div className="text-xs text-slate-500 dark:text-slate-400">2. Sliding Effects</div>
                   <div className="text-sm font-semibold text-slate-900 dark:text-white">slideUp / slideDown</div>
@@ -620,7 +624,8 @@ export default function EffectsLiveCode() {
             </div>
 
             <div className="mt-4 flex justify-center">
-              <div className="w-[260px]">
+              {/* responsive wrapper: full width on mobile, fixed on larger */}
+              <div className="w-full sm:w-[260px]">
                 <div id="panelPreview" className="rounded-md p-4 bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-800/60 dark:border-slate-700 dark:text-slate-300">
                   {/* NOTE: panelBox contains panelInner - inner is animated with transform/opacity */}
                   <div id="panelBox" className="overflow-hidden">
@@ -634,15 +639,16 @@ export default function EffectsLiveCode() {
 
             <div className="mt-4 text-xs text-slate-500 dark:text-slate-400">Use slide toggles to animate height smoothly.</div>
 
-            <div className="mt-4 flex gap-3">
-              <button onClick={() => slideUpBox("panelBox")} className="flex-1 rounded px-3 py-2 bg-sky-600 text-white">Slide Up</button>
-              <button onClick={() => slideDownBox("panelBox")} className="flex-1 rounded px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white">Slide Down</button>
-              <button onClick={() => slideToggleBox("panelBox")} className="flex-1 rounded px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white">Toggle</button>
+            {/* buttons stack on mobile */}
+            <div className="mt-4 flex flex-col sm:flex-row gap-3">
+              <button onClick={() => slideUpBox("panelBox")} className="w-full sm:flex-1 rounded px-3 py-2 bg-sky-600 text-white">Slide Up</button>
+              <button onClick={() => slideDownBox("panelBox")} className="w-full sm:flex-1 rounded px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white">Slide Down</button>
+              <button onClick={() => slideToggleBox("panelBox")} className="w-full sm:flex-1 rounded px-3 py-2 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-white">Toggle</button>
             </div>
           </section>
         </div>
 
-        {/* custom animate and other UI... (unchanged) */}
+        {/* custom animate and other UI... */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-4 transition-colors duration-200">
             <div className="flex items-center justify-between">
@@ -655,8 +661,9 @@ export default function EffectsLiveCode() {
               <div className="text-xs text-slate-500 dark:text-slate-400">Preview</div>
             </div>
 
-            <div className="mt-6 flex items-center gap-6">
-              <div className="flex-1 h-[140px] rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center dark:bg-slate-900/40 dark:border-slate-700">
+            {/* stack stage & properties on mobile */}
+            <div className="mt-6 flex flex-col sm:flex-row items-stretch gap-6">
+              <div className="flex-1 h-36 sm:h-[140px] rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center dark:bg-slate-900/40 dark:border-slate-700">
                 <div id="customStage" className="p-4 bg-sky-500 rounded-lg shadow-lg">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden>
                     <path d="M12 2c0 0-7 3-7 9 0 4.418 3.582 8 8 8s8-3.582 8-8c0-6-9-9-9-9z" fill="#0ea5e9" />
@@ -664,7 +671,7 @@ export default function EffectsLiveCode() {
                 </div>
               </div>
 
-              <div className="w-[320px] bg-white border border-slate-200 p-3 rounded dark:bg-slate-900/40 dark:border-slate-700">
+              <div className="w-full sm:w-[320px] bg-white border border-slate-200 p-3 rounded dark:bg-slate-900/40 dark:border-slate-700">
                 <div className="text-xs text-slate-500 mb-2 dark:text-slate-400">PROPERTIES</div>
                 <div className="space-y-3">
                   <div>
@@ -677,7 +684,7 @@ export default function EffectsLiveCode() {
                     <input id="opacityVal" placeholder="0.5" className="mt-1 w-full p-2 rounded bg-slate-50 border border-slate-200 text-sm dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-200" />
                   </div>
 
-                  <div className="pt-2 grid grid-cols-2 gap-2">
+                  <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <button onClick={() => {
                         const mrVal = document.getElementById("moveRight")?.value;
                         const opVal = document.getElementById("opacityVal")?.value;
@@ -705,7 +712,8 @@ export default function EffectsLiveCode() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <section className="rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-4 transition-colors duration-200">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3"><div className="p-2 rounded bg-slate-50 dark:bg-slate-900/40"><MdQueue /></div>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded bg-slate-50 dark:bg-slate-900/40"><MdQueue /></div>
                 <div>
                   <div className="text-xs text-slate-500 dark:text-slate-400">4. Chaining & Callbacks</div>
                   <div className="text-sm font-semibold text-slate-900 dark:text-white">Sequence animations with callbacks</div>
@@ -714,9 +722,10 @@ export default function EffectsLiveCode() {
               <div className="text-xs text-slate-500 dark:text-slate-400">Chain</div>
             </div>
 
-            <div className="mt-6 flex items-center gap-6">
-              <div id="box3" className="w-24 h-24 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-2xl shadow-lg">1</div>
-              <div className="text-slate-700 dark:text-slate-300">I will fade out, delay, then fade in and move.</div>
+            <div className="mt-6 flex flex-col sm:flex-row items-center gap-4">
+              {/* responsive box and text */}
+              <div id="box3" className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-lg">1</div>
+              <div className="text-slate-700 dark:text-slate-300 text-center sm:text-left">I will fade out, delay, then fade in and move.</div>
             </div>
 
             <div className="mt-6">
@@ -726,19 +735,29 @@ export default function EffectsLiveCode() {
 
           <aside className="rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-4 transition-colors duration-200">
             <div className="text-xs text-slate-500 dark:text-slate-400">Controls</div>
-            <div className="mt-4 flex items-center gap-4">
-              <div className="text-xs text-slate-600 dark:text-slate-400">Duration</div>
-              <input type="range" min="50" max="2000" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-full" />
-              <div className="text-xs text-slate-700 dark:text-slate-300">{duration} ms</div>
+
+            {/* stack controls on mobile */}
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="text-xs text-slate-600 dark:text-slate-400">Duration</div>
+                <div className="flex-1">
+                  <input type="range" min="50" max="2000" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-full" />
+                </div>
+                <div className="text-xs text-slate-700 dark:text-slate-300">{duration} ms</div>
+              </div>
             </div>
 
-            <div className="mt-3 flex items-center gap-3">
-              <div className="text-xs text-slate-600 dark:text-slate-400">Easing</div>
-              <select value={easing} onChange={(e) => setEasing(e.target.value)} className="bg-white border border-slate-200 text-slate-800 px-2 py-1 rounded dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-200">
-                {Object.keys(EASING_MAP).map((k) => <option key={k} value={k}>{k}</option>)}
-              </select>
+            <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="text-xs text-slate-600 dark:text-slate-400">Easing</div>
+                <select value={easing} onChange={(e) => setEasing(e.target.value)} className="bg-white border border-slate-200 text-slate-800 px-2 py-1 rounded dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-200">
+                  {Object.keys(EASING_MAP).map((k) => <option key={k} value={k}>{k}</option>)}
+                </select>
+              </div>
 
-              <div className="ml-auto text-xs text-slate-600 dark:text-slate-400">Callback Status: <span className="text-slate-800 dark:text-slate-200 ml-2">{callbackStatus}</span></div>
+              <div className="ml-auto text-xs text-slate-600 dark:text-slate-400">
+                Callback Status: <span className="text-slate-800 dark:text-slate-200 ml-2">{callbackStatus}</span>
+              </div>
             </div>
           </aside>
         </div>

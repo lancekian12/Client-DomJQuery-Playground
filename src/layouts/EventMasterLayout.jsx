@@ -46,8 +46,8 @@ export default function EventMasterLayout() {
           />
         )}
 
-        {/* Main content area */}
-        <main className="flex-1 min-h-[calc(100vh-56px)] p-4 sm:p-6 overflow-auto bg-slate-50 dark:bg-transparent transition-colors duration-200">
+        {/* Main content area - add bottom padding on mobile so content isn't hidden behind the fixed LiveSource */}
+        <main className="flex-1 min-h-[calc(100vh-56px)] p-4 sm:p-6 pb-24 md:pb-0 overflow-auto bg-slate-50 dark:bg-transparent transition-colors duration-200">
           <div className="max-w-6xl mx-auto">
             <Outlet />
           </div>
@@ -67,6 +67,12 @@ export default function EventMasterLayout() {
           onReset={reset}
         />
       )}
+
+      {/* Mobile LiveSource: fixed bottom sheet */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40">
+        {/* pass the mobile prop so LiveSource switches to bottom-sheet styling */}
+        <LiveSource mobile />
+      </div>
     </div>
   );
 }

@@ -66,12 +66,6 @@ export default function Sidebar({
                 Docs
               </NavLink>
 
-              <button
-                onClick={onReset}
-                className="px-3 py-1 rounded-full bg-sky-600 hover:bg-sky-700 text-white text-sm"
-              >
-                Reset
-              </button>
             </div>
           </div>
         </nav>
