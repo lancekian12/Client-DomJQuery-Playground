@@ -20,7 +20,7 @@ export default function Sidebar({
   // static desktop sidebar (in layout flow)
   if (isDesktopStatic) {
     return (
-      <aside className={`hidden md:flex flex-col w-64 ${baseBg} min-h-[calc(100vh-56px)]`}>
+      <aside className={`hidden md:flex flex-col w-64 ${baseBg} ]`}>
         <nav className="flex flex-col h-full">
           <div className="overflow-y-auto px-4 py-6 flex-1">
             <div className="text-slate-300 uppercase tracking-wide text-xs font-semibold mb-4">
