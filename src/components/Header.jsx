@@ -116,7 +116,7 @@ export default function Header({ onToggleSidebar, onReset = () => {} }) {
           </Link>
         </nav>
 
-        <button
+        {/* <button
           type="button"
           className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-600 hover:bg-sky-700 text-white text-sm shadow"
           onClick={() => {
@@ -151,9 +151,9 @@ export default function Header({ onToggleSidebar, onReset = () => {} }) {
             />
           </svg>
           Reset
-        </button>
+        </button> */}
 
-        <button
+        {/* <button
           aria-label="Toggle color theme"
           onClick={toggleTheme}
           className="p-2 rounded-md hover:bg-slate-700/30"
@@ -203,7 +203,7 @@ export default function Header({ onToggleSidebar, onReset = () => {} }) {
               />
             </svg>
           )}
-        </button>
+        </button> */}
       </div>
     </header>
   );

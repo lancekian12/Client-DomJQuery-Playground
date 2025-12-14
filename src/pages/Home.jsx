@@ -36,8 +36,13 @@ export default function Home() {
     };
 
     el.addEventListener("wheel", onWheel, { passive: false });
+
+    // Also helpful on some touch devices: ensure touch move won't chain (modern browsers + Tailwind's overscroll helps too)
+    // (We do not add touchmove preventDefault here to avoid interfering with native behaviour; overscroll-contain is preferred.)
+
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
+
   const sendEvent = (text, type = "info") => {
     window.dispatchEvent(
       new CustomEvent("eventstream", { detail: { text, type } })
@@ -92,6 +97,34 @@ export default function Home() {
         el.releasePointerCapture(id);
     } catch (err) {}
   };
+
+  useEffect(() => {
+    // Intercept low-level input events during suppression window (capture phase)
+    const intercept = (e) => {
+      if (Date.now() < suppressUntilRef.current) {
+        // Prevent any synthetic mouse/click from reaching siblings
+        try {
+          if (e.cancelable) e.preventDefault();
+        } catch (err) {}
+        try {
+          e.stopPropagation();
+        } catch (err) {}
+        try {
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        } catch (err) {}
+      }
+    };
+
+    window.addEventListener("pointerdown", intercept, true);
+    window.addEventListener("mousedown", intercept, true);
+    window.addEventListener("click", intercept, true);
+
+    return () => {
+      window.removeEventListener("pointerdown", intercept, true);
+      window.removeEventListener("mousedown", intercept, true);
+      window.removeEventListener("click", intercept, true);
+    };
+  }, []);
 
   // Hold timers (for press-and-hold)
   const holdTimers = useRef({}); // { [id]: { timeout, interval, started, count, pointerId } }
@@ -289,9 +322,9 @@ export default function Home() {
                   visual["dblclick"] ? "scale-95 shadow-inner transform" : ""
                 }`}
                 onClick={(e) => {
-                  // prevent synthetic / stray click bubbling; all release logic handled in pointer handlers
                   e.preventDefault();
                   e.stopPropagation();
+                  if (Date.now() < suppressUntilRef.current) return;
                 }}
                 onPointerDown={(e) => {
                   if (e.button !== 0) return;
@@ -340,7 +373,10 @@ export default function Home() {
                   releasePointerCaptureSafe(e.currentTarget, e.pointerId);
                 }}
                 onMouseDown={(e) => {
-                  if (e.button === 0) flashVisual("btn-click");
+                  if (e.button === 0) {
+                    if (Date.now() < suppressUntilRef.current) return;
+                    flashVisual("btn-click");
+                  }
                 }}
                 onMouseUp={(e) => {
                   if (e.button === 0) flashVisual("btn-click");
@@ -388,13 +424,18 @@ export default function Home() {
                   userSelect: "none",
                 }}
                 className="select-none cursor-pointer bg-slate-800/50 border-2 border-dashed border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg active:scale-95 transition-all w-full md:w-auto text-center focus:outline-none focus:ring-0"
-                onClick={(e) => {
-                  // ignore click bubbling; scheduling happens on pointerup
-                  e.stopPropagation();
-                }}
                 onPointerDown={(e) => {
                   if (e.button !== 0) return;
-                  // set suppression immediately so siblings don't react to this press
+
+                  // stop propagation and the browser's default synthesis as early as possible
+                  try {
+                    e.stopPropagation();
+                  } catch (err) {}
+                  try {
+                    if (e.cancelable) e.preventDefault();
+                  } catch (err) {}
+
+                  // set suppression immediately
                   suppressUntilRef.current = Date.now() + 500;
 
                   pointerDownRef.current["dbl"] = e.pointerId ?? "mouse";
@@ -404,7 +445,7 @@ export default function Home() {
                     }
                   } catch (err) {}
 
-                  // on touch, try to prevent synthetic mouse events
+                  // for extra safety on touch
                   if (e.pointerType === "touch") {
                     try {
                       e.preventDefault();
@@ -413,23 +454,23 @@ export default function Home() {
                 }}
                 onPointerUp={(e) => {
                   if (e.button !== 0) return;
+
+                  // stop events reaching siblings
+                  try {
+                    e.stopPropagation();
+                  } catch (err) {}
+                  try {
+                    if (e.cancelable) e.preventDefault();
+                  } catch (err) {}
+
                   const started = pointerDownRef.current["dbl"];
                   const thisId = e.pointerId ?? "mouse";
 
                   if (started != null && started === thisId) {
-                    // prevent leakage to siblings
-                    e.stopPropagation();
-                    if (
-                      e.nativeEvent &&
-                      e.nativeEvent.stopImmediatePropagation
-                    ) {
-                      e.nativeEvent.stopImmediatePropagation();
-                    }
-
-                    // set short suppression window so other controls ignore synthesized events
+                    // keep the suppression short but present for synthetic events
                     suppressUntilRef.current = Date.now() + 350;
 
-                    // schedule single-click behavior; cleared by dblclick
+                    // cancel/queue single-click fallback like before...
                     if (dblClickClickTimer.current) {
                       clearTimeout(dblClickClickTimer.current);
                       dblClickClickTimer.current = null;
@@ -662,7 +703,7 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Wheel */}
+            {/* Wheel (SCROLLABLE CARD) */}
             <div
               className="rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col items-center justify-center gap-4"
               onWheel={handleWheel}
@@ -672,12 +713,31 @@ export default function Home() {
                 <MdBolt size={28} />
               </div>
               <h4 className="font-semibold text-white">Wheel</h4>
-              <div className="w-full md:w-auto bg-slate-800/50 border border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg transition-all text-center">
-                Scroll inside this card
+
+              {/* Minimal "old" visual preserved — just make it scrollable */}
+              <div
+                ref={wheelRef}
+                className="w-full md:w-auto bg-slate-800/50 border border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg overflow-y-auto"
+                style={{
+                  maxHeight: "9rem", // controls when it becomes scrollable; tweak if you want taller/shorter
+                  overscrollBehavior: "contain", // prevent scroll chaining
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
+                {/* Keep content minimal — but include a few lines so it's scrollable */}
+                <div className="space-y-1">
+                  <div>Scroll inside this card</div>
+                  <div>Line 2 — try wheel / trackpad</div>
+                  <div>Line 3 — keep scrolling</div>
+                  <div>Line 4 — almost there</div>
+                  <div>Line 5 — keep going</div>
+                  <div>Line 6 — end</div>
+                </div>
               </div>
+
               <p className="text-xs text-slate-400 text-center max-w-[240px]">
-                Captures <code className="not-italic">wheel</code> events and
-                reports the <code>deltaY</code>.
+                Same old look — but now you can scroll inside. Page shouldn't
+                move when you reach the edges.
               </p>
             </div>
 
