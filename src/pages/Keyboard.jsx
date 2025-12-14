@@ -2,6 +2,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FiType } from "react-icons/fi";
 import { FiCornerDownRight } from "react-icons/fi";
+import { FaGamepad } from "react-icons/fa";
+import { MdSportsEsports } from "react-icons/md";
 
 export default function Keyboard() {
   const [keyInfo, setKeyInfo] = useState({ key: "", code: "", which: null });
@@ -207,8 +209,8 @@ window.addEventListener("keydown", (e) => {
 
             {/* WASD Control */}
             <div className="rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col gap-4 items-center justify-center">
-              <div className="p-3 rounded-full bg-slate-900/60 text-green-400">
-                🎮
+              <div className="p-3 rounded-full bg-slate-900/60 text-green-400 flex items-center justify-center">
+                <MdSportsEsports size={24} />
               </div>
               <h4 className="font-semibold text-white">WASD Control</h4>
               <p className="text-xs text-slate-400 text-center max-w-[220px]">

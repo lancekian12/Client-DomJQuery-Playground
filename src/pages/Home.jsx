@@ -1,16 +1,16 @@
 import React, { useRef, useState } from "react";
-import LiveSource from "../components/LiveSource";
 import { FaMouse } from "react-icons/fa";
 import {
-  FiMousePointer,
-  FiRepeat,
-  FiEye,
-  FiMove,
-  FiMinusSquare,
-  FiZap,
-  FiChevronDown,
-  FiChevronUp,
-} from "react-icons/fi";
+  MdMouse,
+  MdLoop,
+  MdRemoveRedEye,
+  MdOpenWith,
+  MdIndeterminateCheckBox,
+  MdBolt,
+  MdKeyboardArrowDown,
+  MdKeyboardArrowUp
+} from "react-icons/md";
+
 
 export default function Home() {
   const sendEvent = (text, type = "info") => {
@@ -139,8 +139,8 @@ export default function Home() {
                   Event: click
                 </span>
               </div>
-              <div className="p-3 rounded-full bg-slate-900/60 text-primary mb-1">
-                <FiMousePointer size={28} />
+              <div className="p-3 rounded-full bg-slate-900/60 text-primary mb-1 flex items-center justify-center">
+                <MdMouse size={28} />
               </div>
               <h4 className="font-semibold text-white">Single Click</h4>
               <button
@@ -209,8 +209,8 @@ export default function Home() {
                   Event: dblclick
                 </span>
               </div>
-              <div className="p-3 rounded-full bg-slate-900/60 text-purple-400 mb-1">
-                <FiRepeat size={28} />
+              <div className="p-3 rounded-full bg-slate-900/60 text-purple-400 mb-1 flex items-center justify-center">
+                <MdLoop size={28} />
               </div>
               <h4 className="font-semibold text-white">Double Click</h4>
               <div
@@ -271,7 +271,7 @@ export default function Home() {
                 </span>
               </div>
               <div className="p-3 rounded-full bg-slate-900/60 text-amber-400 mb-1">
-                <FiEye size={28} />
+                <MdRemoveRedEye size={28} />
               </div>
               <h4 className="font-semibold text-white">Hover Effects</h4>
               <div
@@ -319,7 +319,7 @@ export default function Home() {
                 </span>
               </div>
               <div className="p-3 rounded-full bg-slate-900/60 text-red-400 mb-1">
-                <FiMinusSquare size={28} />
+                <MdIndeterminateCheckBox size={28} />
               </div>
               <h4 className="font-semibold text-white">Context Menu</h4>
               <div
@@ -354,7 +354,7 @@ export default function Home() {
               onMouseEnter={() => sendLiveSource(snippets.mouseover)}
             >
               <div className="flex items-center gap-4">
-                <FiMove size={22} className="text-sky-400" />
+                <MdOpenWith size={22} className="text-sky-400" />
                 <div className="text-slate-300">Move mouse here</div>
               </div>
               <p className="text-xs text-slate-400 text-center max-w-[240px]">
@@ -370,7 +370,7 @@ export default function Home() {
               tabIndex={0}
             >
               <div className="p-3 rounded-full bg-slate-900/60 text-sky-400 mb-1">
-                <FiChevronDown size={28} />
+                <MdKeyboardArrowDown size={28} />
               </div>
               <h4 className="font-semibold text-white">Mouse Down / Up</h4>
               <div
@@ -437,7 +437,7 @@ export default function Home() {
                 </span>
               </div>
               <div className="p-3 rounded-full bg-slate-900/60 text-amber-400 mb-1">
-                <FiChevronUp size={28} />
+                <MdKeyboardArrowUp size={28} />
               </div>
               <h4 className="font-semibold text-white">Mouse Enter / Leave</h4>
               <div
@@ -463,7 +463,7 @@ export default function Home() {
               onMouseEnter={() => sendLiveSource(snippets.wheel)}
             >
               <div className="p-3 rounded-full bg-slate-900/60 text-purple-400 mb-1">
-                <FiZap size={28} />
+                <MdBolt size={28} />
               </div>
               <h4 className="font-semibold text-white">Wheel</h4>
               <div className="w-full md:w-auto bg-slate-800/50 border border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg transition-all text-center">
@@ -482,7 +482,7 @@ export default function Home() {
               tabIndex={0}
             >
               <div className="p-3 rounded-full bg-slate-900/60 text-sky-400 mb-1">
-                <FiMousePointer size={28} />
+                <MdMouse size={28} />
               </div>
               <h4 className="font-semibold text-white">Aux Click (middle)</h4>
               <div
