@@ -600,7 +600,7 @@ export default function Home() {
               </h4>
               <div
                 id="ctx-target"
-                className={`w-full md:w-auto cursor-context-menu bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium py-2 px-6 rounded-lg transition-all text-center select-none focus:outline-none dark:bg-slate-800/50 dark:border-slate-700 dark:hover:bg-slate-700/50 ${
+                className={`w-full md:w-auto cursor-context-menu bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium py-2 px-6 rounded-lg transition-all text-center select-none focus:outline-none dark:text-slate-300 dark:bg-slate-800/50 dark:border-slate-700 dark:hover:bg-slate-700/50 ${
                   visual["contextmenu"] ? "ring-2 ring-red-500" : ""
                 }`}
                 onContextMenu={(e) => {
