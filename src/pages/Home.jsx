@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaMouse } from "react-icons/fa";
 import {
   MdMouse,
@@ -8,9 +8,8 @@ import {
   MdIndeterminateCheckBox,
   MdBolt,
   MdKeyboardArrowDown,
-  MdKeyboardArrowUp
+  MdKeyboardArrowUp,
 } from "react-icons/md";
-
 
 export default function Home() {
   const sendEvent = (text, type = "info") => {
@@ -19,19 +18,14 @@ export default function Home() {
     );
   };
 
-  // helper: broadcast code snippet to live source panel
   const sendLiveSource = (code) => {
     window.dispatchEvent(new CustomEvent("live-source", { detail: { code } }));
   };
 
-  // active label state (shows top-right label on click or hover)
   const [activeCard, setActiveCard] = useState(null);
   const activeTimeoutRef = useRef(null);
   function activateCard(id, text, type = "info", duration = 1800) {
-    // clear previous timeout
-    if (activeTimeoutRef.current) {
-      clearTimeout(activeTimeoutRef.current);
-    }
+    if (activeTimeoutRef.current) clearTimeout(activeTimeoutRef.current);
     setActiveCard(id);
     sendEvent(text, type);
     activeTimeoutRef.current = setTimeout(() => {
@@ -40,14 +34,10 @@ export default function Home() {
     }, duration);
   }
 
-  // small ephemeral visual feedback map (for press/ctx/aux etc.)
   const [visual, setVisual] = useState({});
   const visualTimers = useRef({});
   function flashVisual(id, duration = 420) {
-    // clear existing timer for id
-    if (visualTimers.current[id]) {
-      clearTimeout(visualTimers.current[id]);
-    }
+    if (visualTimers.current[id]) clearTimeout(visualTimers.current[id]);
     setVisual((s) => ({ ...s, [id]: true }));
     visualTimers.current[id] = setTimeout(() => {
       setVisual((s) => {
@@ -59,11 +49,111 @@ export default function Home() {
     }, duration);
   }
 
-  // track pointer down state per control so we only treat release for the button that was pressed
+  // persistent pressed UI state for the "Press and Release" button
+  const [pressed, setPressed] = useState(false);
+
+  // pointerId per control & dbl timer
   const pointerDownRef = useRef({});
   const dblClickClickTimer = useRef(null);
 
-  // throttle mousemove
+  // suppression window: while set, other controls (like Trigger Action) ignore presses/releases
+  const suppressUntilRef = useRef(0);
+
+  // helper: release pointer capture safely
+  const releasePointerCaptureSafe = (el, id) => {
+    try {
+      if (el && typeof el.releasePointerCapture === "function")
+        el.releasePointerCapture(id);
+    } catch (err) {}
+  };
+
+  // Hold timers (for press-and-hold)
+  const holdTimers = useRef({}); // { [id]: { timeout, interval, started, count, pointerId } }
+
+  function startHold(id, e, opts = {}) {
+    const { firstDelay = 500, repeatInterval = 150 } = opts;
+    // store pointer id
+    pointerDownRef.current[id] = e.pointerId ?? "mouse";
+    try {
+      if (e.currentTarget && e.currentTarget.setPointerCapture) {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      }
+    } catch (err) {}
+
+    // visual feedback immediately
+    flashVisual(id);
+
+    // prepare container
+    const container = {};
+    holdTimers.current[id] = container;
+    container.pointerId = pointerDownRef.current[id];
+    container.started = false;
+    container.count = 0;
+
+    // schedule first hold start
+    container.timeout = setTimeout(() => {
+      container.started = true;
+      container.count = 0;
+      activateCard(id, `> hold start`, "warning");
+      flashVisual(id);
+      // begin repeating ticks
+      container.interval = setInterval(() => {
+        container.count += 1;
+        activateCard(id, `> hold (${container.count})`, "warning", 700);
+        flashVisual(id, 220);
+      }, repeatInterval);
+    }, firstDelay);
+  }
+
+  function stopHold(id, e) {
+    const container = holdTimers.current[id];
+    // if nothing scheduled, ignore
+    if (!container) {
+      pointerDownRef.current[id] = null;
+      releasePointerCaptureSafe(e.currentTarget, e.pointerId);
+      return;
+    }
+
+    // clear timers
+    if (container.timeout) clearTimeout(container.timeout);
+    if (container.interval) clearInterval(container.interval);
+
+    const wasStarted = container.started;
+    delete holdTimers.current[id];
+    pointerDownRef.current[id] = null;
+    releasePointerCaptureSafe(e.currentTarget, e.pointerId);
+
+    if (wasStarted) {
+      // ended a hold
+      activateCard(id, "> release (after hold)", "success");
+      flashVisual(id);
+    } else {
+      // wasn't a hold — treat as a normal quick click
+      // but respect suppression window if set
+      if (Date.now() < suppressUntilRef.current) {
+        return;
+      }
+      activateCard("click", "> click", "success");
+      flashVisual("btn-click");
+    }
+  }
+
+  // cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (activeTimeoutRef.current) clearTimeout(activeTimeoutRef.current);
+      if (dblClickClickTimer.current) clearTimeout(dblClickClickTimer.current);
+      Object.values(visualTimers.current).forEach((t) => clearTimeout(t));
+      Object.values(holdTimers.current).forEach((c) => {
+        if (c.timeout) clearTimeout(c.timeout);
+        if (c.interval) clearInterval(c.interval);
+      });
+      visualTimers.current = {};
+      holdTimers.current = {};
+    };
+  }, []);
+
+  // mousemove throttling
   const lastMoveRef = useRef(0);
   const handleMouseMove = (e) => {
     const now = Date.now();
@@ -75,17 +165,36 @@ export default function Home() {
     activateCard("mousemove", `> mousemove at (${x}, ${y})`, "info");
   };
 
+  const isPressingRef = useRef(false);
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (!isPressingRef.current) return;
+
+      // clear pressing flags AND clear persistent UI
+      isPressingRef.current = false;
+      setPressed(false);
+
+      activateCard("mousedown", "> mouseup", "success");
+      // don't use flashVisual for sustained pressed UI — the persistent state handles it
+    };
+
+    window.addEventListener("mouseup", handleGlobalMouseUp);
+    window.addEventListener("pointerup", handleGlobalMouseUp);
+
+    return () => {
+      window.removeEventListener("mouseup", handleGlobalMouseUp);
+      window.removeEventListener("pointerup", handleGlobalMouseUp);
+    };
+  }, []);
   const handleWheel = (e) => {
-    // show wheel delta
     activateCard("wheel", `> wheel deltaY: ${Math.round(e.deltaY)}`, "info");
   };
 
-  // small library of code snippets for each card
   const snippets = {
     click: `// click handler\nconst btn = document.querySelector("#btn-click");\nbtn.addEventListener("click", () => console.log("Button clicked!"));`,
     dblclick: `// dblclick handler\nconst card = document.querySelector(".dbl-card");\ncard.addEventListener("dblclick", () => console.log("Double clicked!"));`,
     mouseover: `// mouseover/mouseout\nconst box = document.querySelector(".hover-card");\nbox.addEventListener("mouseover", () => console.log("mouseover"));\nbox.addEventListener("mouseout", () => console.log("mouseout"));`,
-    contextmenu: `$("#ctx-target").on("contextmenu", function(e) {\n  // Prevent default context menu\n  e.preventDefault();\n  const el = $(this);\n  el.addClass("ring-2 ring-red-500");\n  console.log("Right-click detected!");\n  showFeedback("Opening menu...");\n});`,
+    contextmenu: `$("#ctx-target").on("contextmenu", function(e) {\n  e.preventDefault();\n  const el = $(this);\n  el.addClass("ring-2 ring-red-500");\n  console.log("Right-click detected!");\n});`,
     mousedown: `// mousedown / mouseup\nconst el = document.querySelector(".press-area");\nel.addEventListener("mousedown", () => console.log("mousedown"));\nel.addEventListener("mouseup", () => console.log("mouseup"));`,
     enterleave: `// mouseenter / mouseleave\nconst area = document.querySelector(".enter-area");\narea.addEventListener("mouseenter", () => console.log("mouseenter"));\narea.addEventListener("mouseleave", () => console.log("mouseleave"));`,
     wheel: `// wheel event\nconst card = document.querySelector(".wheel-card");\ncard.addEventListener("wheel", (e) => console.log("wheel deltaY:", e.deltaY));`,
@@ -95,7 +204,6 @@ export default function Home() {
   return (
     <main className="flex-1 overflow-y-auto custom-scrollbar bg-background-dark p-6 lg:p-10">
       <div className="max-w-4xl mx-auto flex flex-col gap-8">
-        {/* Header */}
         <div className="flex flex-col gap-2">
           <h2 className="text-3xl font-bold text-white tracking-tight">
             DOM & jQuery Playground
@@ -106,7 +214,6 @@ export default function Home() {
           </p>
         </div>
 
-        {/* MOUSE EVENTS ONLY */}
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
@@ -121,7 +228,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Single Click */}
+            {/* Single Click with Hold support */}
             <div
               className="rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col items-center justify-center gap-4 relative group"
               onMouseEnter={() => sendLiveSource(snippets.click)}
@@ -136,45 +243,75 @@ export default function Home() {
                 }`}
               >
                 <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
-                  Event: click
+                  Event: click / hold
                 </span>
               </div>
+
               <div className="p-3 rounded-full bg-slate-900/60 text-primary mb-1 flex items-center justify-center">
                 <MdMouse size={28} />
               </div>
               <h4 className="font-semibold text-white">Single Click</h4>
+
               <button
                 id="btn-click"
-                // prevent selection / tap highlight and ensure pointer handlers only for left button
                 style={{
                   WebkitTapHighlightColor: "transparent",
                   userSelect: "none",
+                  touchAction: "manipulation",
                 }}
                 className={`select-none cursor-pointer bg-slate-800/50 border-2 border-dashed border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg active:scale-95 transition-all w-full md:w-auto text-center focus:outline-none focus:ring-0 ${
                   visual["dblclick"] ? "scale-95 shadow-inner transform" : ""
                 }`}
-                onClick={() => {
-                  // single-click action
-                  activateCard("click", "> click", "success");
-                }}
-                onDoubleClick={(e) => {
-                  // prevent the browser treating a rapid double click as selection/zoom; also avoid double-firing visuals
+                onClick={(e) => {
+                  // prevent synthetic / stray click bubbling; all release logic handled in pointer handlers
                   e.preventDefault();
                   e.stopPropagation();
                 }}
                 onPointerDown={(e) => {
-                  if (e.button === 0) {
-                    flashVisual("btn-click");
-                    // track that this control is pressed by pointer
-                    pointerDownRef.current["btn-click"] = true;
+                  if (e.button !== 0) return;
+                  // if a suppression window is active (another control recently acted), ignore this press
+                  if (Date.now() < suppressUntilRef.current) {
+                    try {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    } catch (err) {}
+                    return;
                   }
+                  // start hold logic; quick release will be treated as click in stopHold
+                  startHold("btn-click", e, {
+                    firstDelay: 500,
+                    repeatInterval: 150,
+                  });
                 }}
                 onPointerUp={(e) => {
-                  // only treat release if the left button originally pressed this control
-                  if (e.button === 0 && pointerDownRef.current["btn-click"]) {
-                    flashVisual("btn-click");
-                    pointerDownRef.current["btn-click"] = false;
+                  if (e.button !== 0) return;
+                  // if suppression window active, ignore
+                  if (Date.now() < suppressUntilRef.current) {
+                    // ensure we clean up possible hold timers
+                    if (holdTimers.current["btn-click"]) {
+                      if (holdTimers.current["btn-click"].timeout)
+                        clearTimeout(holdTimers.current["btn-click"].timeout);
+                      if (holdTimers.current["btn-click"].interval)
+                        clearInterval(holdTimers.current["btn-click"].interval);
+                      delete holdTimers.current["btn-click"];
+                    }
+                    pointerDownRef.current["btn-click"] = null;
+                    releasePointerCaptureSafe(e.currentTarget, e.pointerId);
+                    return;
                   }
+                  stopHold("btn-click", e);
+                }}
+                onPointerCancel={(e) => {
+                  // cancel hold
+                  if (holdTimers.current["btn-click"]) {
+                    if (holdTimers.current["btn-click"].timeout)
+                      clearTimeout(holdTimers.current["btn-click"].timeout);
+                    if (holdTimers.current["btn-click"].interval)
+                      clearInterval(holdTimers.current["btn-click"].interval);
+                    delete holdTimers.current["btn-click"];
+                  }
+                  pointerDownRef.current["btn-click"] = null;
+                  releasePointerCaptureSafe(e.currentTarget, e.pointerId);
                 }}
                 onMouseDown={(e) => {
                   if (e.button === 0) flashVisual("btn-click");
@@ -187,8 +324,10 @@ export default function Home() {
               >
                 Trigger Action
               </button>
+
               <p className="text-xs text-slate-400 text-center max-w-[200px]">
-                Fires when a pointing device button is pressed and released.
+                Tap quickly to click, or press-and-hold to enter a repeating
+                hold state — release to finish.
               </p>
             </div>
 
@@ -213,47 +352,109 @@ export default function Home() {
                 <MdLoop size={28} />
               </div>
               <h4 className="font-semibold text-white">Double Click</h4>
+
               <div
                 role="button"
                 tabIndex={0}
-                // touch-action prevents double-tap zoom/selection on mobile and helps remove stray outlines/lines
                 style={{
                   touchAction: "manipulation",
                   WebkitTapHighlightColor: "transparent",
                   userSelect: "none",
                 }}
-                className={`select-none cursor-pointer bg-slate-800/50 border-2 border-dashed border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg active:scale-95 transition-all w-full md:w-auto text-center focus:outline-none focus:ring-0 ${
-                  visual["dblclick"] ? "scale-95 shadow-inner transform" : ""
-                }`}
-                onDoubleClick={(e) => {
-                  // clear the single-click timeout so single-click doesn't run
+                className="select-none cursor-pointer bg-slate-800/50 border-2 border-dashed border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg active:scale-95 transition-all w-full md:w-auto text-center focus:outline-none focus:ring-0"
+                onClick={(e) => {
+                  // ignore click bubbling; scheduling happens on pointerup
+                  e.stopPropagation();
+                }}
+                onPointerDown={(e) => {
+                  if (e.button !== 0) return;
+                  // set suppression immediately so siblings don't react to this press
+                  suppressUntilRef.current = Date.now() + 500;
+
+                  pointerDownRef.current["dbl"] = e.pointerId ?? "mouse";
+                  try {
+                    if (e.currentTarget && e.currentTarget.setPointerCapture) {
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                    }
+                  } catch (err) {}
+
+                  // on touch, try to prevent synthetic mouse events
+                  if (e.pointerType === "touch") {
+                    try {
+                      e.preventDefault();
+                    } catch (err) {}
+                  }
+                }}
+                onPointerUp={(e) => {
+                  if (e.button !== 0) return;
+                  const started = pointerDownRef.current["dbl"];
+                  const thisId = e.pointerId ?? "mouse";
+
+                  if (started != null && started === thisId) {
+                    // prevent leakage to siblings
+                    e.stopPropagation();
+                    if (
+                      e.nativeEvent &&
+                      e.nativeEvent.stopImmediatePropagation
+                    ) {
+                      e.nativeEvent.stopImmediatePropagation();
+                    }
+
+                    // set short suppression window so other controls ignore synthesized events
+                    suppressUntilRef.current = Date.now() + 350;
+
+                    // schedule single-click behavior; cleared by dblclick
+                    if (dblClickClickTimer.current) {
+                      clearTimeout(dblClickClickTimer.current);
+                      dblClickClickTimer.current = null;
+                    }
+                    dblClickClickTimer.current = setTimeout(() => {
+                      activateCard("dblclick", "> click (single)", "info");
+                      flashVisual("dblclick");
+                      dblClickClickTimer.current = null;
+                    }, 220);
+                  }
+
+                  pointerDownRef.current["dbl"] = null;
+                  releasePointerCaptureSafe(e.currentTarget, e.pointerId);
+                }}
+                onPointerCancel={(e) => {
+                  pointerDownRef.current["dbl"] = null;
                   if (dblClickClickTimer.current) {
                     clearTimeout(dblClickClickTimer.current);
                     dblClickClickTimer.current = null;
                   }
+                  releasePointerCaptureSafe(e.currentTarget, e.pointerId);
+                }}
+                onDoubleClick={(e) => {
+                  // real dblclick -> cancel single-click and run dbl action
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (e.nativeEvent && e.nativeEvent.stopImmediatePropagation) {
+                    e.nativeEvent.stopImmediatePropagation();
+                  }
+                  if (dblClickClickTimer.current) {
+                    clearTimeout(dblClickClickTimer.current);
+                    dblClickClickTimer.current = null;
+                  }
+
+                  // suppress siblings briefly (protect against synthetic events)
+                  suppressUntilRef.current = Date.now() + 350;
+
                   activateCard("dblclick", "> dblclick", "success");
                   flashVisual("dblclick");
-                }}
-                onClick={(e) => {
-                  // run single-click but delay slightly so a double click can cancel it
-                  if (dblClickClickTimer.current)
-                    clearTimeout(dblClickClickTimer.current);
-                  dblClickClickTimer.current = setTimeout(() => {
-                    activateCard("dblclick", "> click (single)", "info");
-                    flashVisual("dblclick");
-                    dblClickClickTimer.current = null;
-                  }, 220);
                 }}
                 onMouseEnter={() => sendLiveSource(snippets.dblclick)}
               >
                 Double Tap Here
               </div>
+
               <p className="text-xs text-slate-400 text-center max-w-[200px]">
                 Fires when a pointing device button is clicked twice rapidly.
               </p>
             </div>
 
-            {/* Hover Effects (mouseover/mouseout) */}
+            {/* Hover Effects */}
             <div
               className="rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col items-center justify-center gap-4 relative group"
               onMouseEnter={() => sendLiveSource(snippets.mouseover)}
@@ -334,7 +535,6 @@ export default function Home() {
                     "> contextmenu (right-click) captured!",
                     "warning"
                   );
-                  // visual ring
                   flashVisual("contextmenu");
                 }}
                 onMouseEnter={() => sendLiveSource(snippets.contextmenu)}
@@ -376,39 +576,19 @@ export default function Home() {
               <div
                 role="button"
                 tabIndex={0}
-                className={`w-full md:w-auto bg-slate-800/50 border border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg transition-all text-center select-none cursor-pointer ${
-                  visual["mousedown"] ? "scale-95 shadow-inner" : ""
-                }`}
-                // pointer handlers ensure consistent behavior across touch/mouse
-                onPointerDown={(e) => {
-                  // only treat left button as press
-                  if (e.button === 0) {
-                    activateCard("mousedown", "> mousedown", "info");
-                    flashVisual("mousedown");
-                    pointerDownRef.current["mousedown"] = true;
-                  }
-                }}
-                onPointerUp={(e) => {
-                  // release only if this control was the one pressed and left button
-                  if (e.button === 0 && pointerDownRef.current["mousedown"]) {
-                    activateCard("mousedown", "> mouseup", "success");
-                    flashVisual("mousedown");
-                    pointerDownRef.current["mousedown"] = false;
-                  }
-                }}
+                className={`w-full md:w-auto bg-slate-800/50 border border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg transition-all text-center select-none cursor-pointer ${pressed ? "scale-95 shadow-inner" : ""
+                  }`}
                 onMouseDown={(e) => {
-                  if (e.button === 0) {
-                    activateCard("mousedown", "> mousedown", "info");
-                    flashVisual("mousedown");
-                    pointerDownRef.current["mousedown"] = true;
-                  }
+                  if (e.button !== 0) return;
+                  isPressingRef.current = true;
+                  setPressed(true);
+                  activateCard("mousedown", "> mousedown", "info");
                 }}
-                onMouseUp={(e) => {
-                  if (e.button === 0 && pointerDownRef.current["mousedown"]) {
-                    activateCard("mousedown", "> mouseup", "success");
-                    flashVisual("mousedown");
-                    pointerDownRef.current["mousedown"] = false;
-                  }
+                onPointerDown={(e) => {
+                  if (e.button !== 0) return;
+                  isPressingRef.current = true;
+                  setPressed(true);
+                  activateCard("mousedown", "> mousedown", "info");
                 }}
               >
                 Press and Release
@@ -431,7 +611,6 @@ export default function Home() {
                   activeCard === "enterleave" ? "opacity-100" : "opacity-0"
                 }`}
               >
-                {/* NOTE: removed group-hover for this card so the label won't pop in just because you hovered the card container */}
                 <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400">
                   Event: mouseenter / mouseleave
                 </span>
@@ -456,7 +635,7 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Wheel (scroll) */}
+            {/* Wheel */}
             <div
               className="rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col items-center justify-center gap-4"
               onWheel={handleWheel}
@@ -475,7 +654,7 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Auxclick (middle-click) */}
+            {/* Auxclick */}
             <div
               className="rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col items-center justify-center gap-4"
               onMouseEnter={() => sendLiveSource(snippets.auxclick)}
@@ -500,7 +679,6 @@ export default function Home() {
                   );
                   flashVisual("auxclick");
                 }}
-                // fallback: some browsers don't fire auxclick on divs reliably — detect middle button on mousedown too
                 onMouseDown={(e) => {
                   if (e.button === 1) {
                     e.preventDefault();
