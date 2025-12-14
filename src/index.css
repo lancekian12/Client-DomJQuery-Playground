@@ -1,1 +1,24 @@
 @import "tailwindcss";
+
+:root {
+  --transition-duration: 200ms;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+/* optional global utilities */
+* { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* small helper so theme changes feel nicer */
+html,
+body,
+#root {
+  transition: background-color var(--transition-duration), color var(--transition-duration);
+}
