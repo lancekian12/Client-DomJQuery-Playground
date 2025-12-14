@@ -1,12 +1,13 @@
-// EffectsLiveCode.Designed.v3.fixed.controls.slidefix.jsx
+// EffectsLiveCode.Designed.v3.fixed.controls.slidefix.smooth.jsx
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { MdBlurOn, MdFlip, MdPlayArrow, MdQueue } from "react-icons/md";
 
 /*
-  Fixes:
-   - Custom animation area fills full width (parent grid changed to lg:grid-cols-2)
-   - Smooth slideUp/slideDown using transitionend + forced start height (no lag)
-   - Controls (duration/easing) still use refs (no stale closures)
+  Smooth slide fix:
+   - Wrap panel content in #panelInner
+   - Animate outer height (layout) + inner transform/opacity (GPU) together
+   - transitionend on height used to resolve Promise
+   - duration/easing read from refs
 */
 
 function sendEvent(text, type = "info") {
@@ -30,6 +31,7 @@ export default function EffectsLiveCode() {
   const [easing, setEasing] = useState("swing");
   const [callbackStatus, setCallbackStatus] = useState("Idle");
 
+  // keep latest values available inside async functions
   const durationRef = useRef(duration);
   const easingRef = useRef(easing);
   useEffect(() => { durationRef.current = duration; }, [duration]);
@@ -48,7 +50,7 @@ export default function EffectsLiveCode() {
 
   useEffect(() => {
     sendEvent("Animations demo ready", "muted");
-    const ids = ["box1", "box2", "box3", "panelBox", "customStage"];
+    const ids = ["box1", "box2", "box3", "panelBox", "panelInner", "customStage"];
     ids.forEach((id) => {
       const el = document.getElementById(id);
       if (el) {
@@ -77,7 +79,7 @@ export default function EffectsLiveCode() {
     setRunningCount(0);
     setActiveEl(null);
     setCurrentOp(null);
-    ["box1", "box2", "box3", "panelBox", "customStage"].forEach((id) => {
+    ["box1", "box2", "box3", "panelBox", "panelInner", "customStage"].forEach((id) => {
       const el = document.getElementById(id);
       if (el) {
         const cs = window.getComputedStyle(el);
@@ -106,51 +108,100 @@ export default function EffectsLiveCode() {
     sendEvent(`restored ${targetId}`, "info");
   }
 
-  // helper: animate height from -> to, returns Promise that resolves on transitionend (or safety timeout)
-  function animateHeight(node, from, to) {
+  // animateHeight now optionally coordinates an inner element transform/opacity animation
+  function animateHeightWithInner(node, innerNode, from, to) {
     return new Promise((resolve) => {
       const dur = durationRef.current;
       const easingStr = EASING_MAP[easingRef.current] || easingRef.current;
 
-      // ensure we control overflow and box-sizing is stable
+      // Outer: height (layout)
       node.style.overflow = "hidden";
       node.style.willChange = "height";
 
-      // set starting height without transition
+      // Inner: transform + opacity (GPU)
+      if (innerNode) {
+        innerNode.style.willChange = "transform, opacity";
+        // make sure inner starts at neutral position (no vertical offset) when expanding
+        innerNode.style.transition = `transform ${dur}ms ${easingStr}, opacity ${dur}ms ${easingStr}`;
+      }
+
+      // Set starting height without transition
       node.style.transition = "";
       node.style.height = from;
 
-      // force reflow so browser acknowledges starting height
+      // force reflow
       void node.offsetHeight;
 
-      // now enable transition and set target height
+      // For visual smoothness: if we're expanding, set inner initially slightly up and faded (so it can slide in),
+      // if collapsing, inner starts at neutral and will slide up/fade.
+      if (innerNode) {
+        applyStyleNextFrame(() => {
+          if (from === "0px" || from === "0") {
+            // we are expanding: start inner slightly up & invisible so it animates into place
+            innerNode.style.transform = "translateY(-8px)";
+            innerNode.style.opacity = "0";
+            // force repaint for inner
+            void innerNode.offsetHeight;
+          } else {
+            // collapsing: ensure inner is neutral before starting height animation
+            innerNode.style.transform = "translateY(0)";
+            innerNode.style.opacity = "1";
+            void innerNode.offsetHeight;
+          }
+        });
+      }
+
+      // Enable height transition then change target
       node.style.transition = `height ${dur}ms ${easingStr}`;
-      // use RAF to ensure transition applies
+
+      // on next RAF set the target height
       requestAnimationFrame(() => {
         node.style.height = to;
+        // start inner animation slightly after height starts to look natural
+        if (innerNode) {
+          requestAnimationFrame(() => {
+            // expanding: animate to neutral; collapsing: animate to slightly up + hide
+            if (from === "0px" || from === "0") {
+              innerNode.style.transform = "translateY(0)";
+              innerNode.style.opacity = "1";
+            } else {
+              innerNode.style.transform = "translateY(-8px)";
+              innerNode.style.opacity = "0";
+            }
+          });
+        }
       });
 
-      let resolved = false;
+      let done = false;
       function onEnd(e) {
         if (e && e.propertyName !== "height") return;
-        if (resolved) return;
-        resolved = true;
+        if (done) return;
+        done = true;
         node.removeEventListener("transitionend", onEnd);
+        // clean up
         node.style.transition = "";
         node.style.willChange = "";
+        if (innerNode) {
+          innerNode.style.transition = "";
+          innerNode.style.willChange = "";
+        }
         resolve();
       }
       node.addEventListener("transitionend", onEnd, { passive: true });
 
-      // safety fallback in case transitionend doesn't fire
+      // safety fallback
       setTimeout(() => {
-        if (resolved) return;
-        resolved = true;
+        if (done) return;
+        done = true;
         node.removeEventListener("transitionend", onEnd);
         node.style.transition = "";
         node.style.willChange = "";
+        if (innerNode) {
+          innerNode.style.transition = "";
+          innerNode.style.willChange = "";
+        }
         resolve();
-      }, dur + 80);
+      }, dur + 100);
     });
   }
 
@@ -260,34 +311,40 @@ export default function EffectsLiveCode() {
         return;
       }
 
-      // SLIDE using animateHeight helper for smoothness
+      // SLIDE: use the inner wrapper (#panelInner) for GPU movement while height animates
       if (op === "slideUp") {
+        // el === panelBox expected; find inner
+        const inner = document.getElementById(`${target}Inner`) || document.getElementById("panelInner") || null;
         el.style.display = initialStyles.current[target]?.display || "block";
-        // force reflow so scrollHeight is correct
         void el.offsetHeight;
         const full = `${el.scrollHeight}px` || initialStyles.current[target]?.height || "0px";
-        animateHeight(el, full, "0px").then(() => {
+        // animate height & inner transform/opacity
+        animateHeightWithInner(el, inner, full, "0px").then(() => {
           el.style.display = "none";
           el.style.height = "";
+          if (inner) { inner.style.transform = ""; inner.style.opacity = ""; }
           finish("slid-up");
           resolve();
         });
         return;
       }
       if (op === "slideDown") {
+        const inner = document.getElementById(`${target}Inner`) || document.getElementById("panelInner") || null;
         el.style.display = initialStyles.current[target]?.display || "block";
-        // set explicit 0 start
+        // explicit 0 start so height animation works
         el.style.height = "0px";
         void el.offsetHeight;
         const full = `${el.scrollHeight}px` || initialStyles.current[target]?.height || "72px";
-        animateHeight(el, "0px", full).then(() => {
+        animateHeightWithInner(el, inner, "0px", full).then(() => {
           el.style.height = "";
+          if (inner) { inner.style.transform = ""; inner.style.opacity = ""; }
           finish("slid-down");
           resolve();
         });
         return;
       }
       if (op === "slideToggle") {
+        const inner = document.getElementById(`${target}Inner`) || document.getElementById("panelInner") || null;
         const cs = window.getComputedStyle(el);
         const curH = parseFloat(cs.height || "0");
         const isHidden = cs.display === "none" || curH < 2;
@@ -295,17 +352,19 @@ export default function EffectsLiveCode() {
           el.style.display = initialStyles.current[target]?.display || "block";
           void el.offsetHeight;
           const full = `${el.scrollHeight}px` || initialStyles.current[target]?.height || "72px";
-          animateHeight(el, "0px", full).then(() => {
+          animateHeightWithInner(el, inner, "0px", full).then(() => {
             el.style.height = "";
+            if (inner) { inner.style.transform = ""; inner.style.opacity = ""; }
             finish("slid-down");
             resolve();
           });
         } else {
           void el.offsetHeight;
           const full = `${el.scrollHeight}px` || initialStyles.current[target]?.height || "72px";
-          animateHeight(el, full, "0px").then(() => {
+          animateHeightWithInner(el, inner, full, "0px").then(() => {
             el.style.display = "none";
             el.style.height = "";
+            if (inner) { inner.style.transform = ""; inner.style.opacity = ""; }
             finish("slid-up");
             resolve();
           });
@@ -313,7 +372,7 @@ export default function EffectsLiveCode() {
         return;
       }
 
-      // movement ops
+      // movement ops (unchanged)
       if (op === "animateMoveRight") {
         const base = initialStyles.current[target]?.transform ?? window.getComputedStyle(el).transform ?? "";
         const half = Math.max(60, Math.round(dur() / 2));
@@ -339,6 +398,7 @@ export default function EffectsLiveCode() {
         return;
       }
 
+      // toggleClass / stop / generic animate unchanged...
       if (op === "toggleClass") {
         el.classList.toggle("ring-4");
         const added = el.classList.contains("ring-4");
@@ -357,7 +417,6 @@ export default function EffectsLiveCode() {
         return;
       }
 
-      // generic animate
       if (params && params.to) {
         const transitions = [];
         if (params.to.transform != null) transitions.push(`transform ${dur()}ms ${easingStr}`);
@@ -560,7 +619,12 @@ export default function EffectsLiveCode() {
             <div className="mt-4 flex justify-center">
               <div className="w-[260px]">
                 <div id="panelPreview" className="rounded-md p-4 bg-slate-800 border border-slate-700 text-slate-300">
-                  <div id="panelBox" className="p-3 rounded bg-slate-700 text-sm">Hidden Content</div>
+                  {/* NOTE: panelBox contains panelInner - inner is animated with transform/opacity */}
+                  <div id="panelBox" className="overflow-hidden">
+                    <div id="panelInner" className="p-3 rounded bg-slate-700 text-sm">
+                      Hidden Content
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -575,9 +639,8 @@ export default function EffectsLiveCode() {
           </section>
         </div>
 
-        {/* make this parent use 2 columns on lg so the custom animate fills full width */}
+        {/* custom animate and other UI... (unchanged) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* 3. Custom animate (fills full width) */}
           <div className="lg:col-span-2 rounded-xl border border-[#223649] bg-slate-800/60 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3"><div className="p-2 rounded bg-slate-900/40"><MdPlayArrow /></div>
@@ -637,7 +700,6 @@ export default function EffectsLiveCode() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* 4 Chain + Controls */}
           <section className="rounded-xl border border-[#223649] bg-slate-800/60 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3"><div className="p-2 rounded bg-slate-900/40"><MdQueue /></div>
