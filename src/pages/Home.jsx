@@ -12,6 +12,32 @@ import {
 } from "react-icons/md";
 
 export default function Home() {
+  const wheelRef = useRef(null);
+
+  useEffect(() => {
+    const el = wheelRef.current;
+    if (!el) return;
+
+    // Non-passive listener so we can call preventDefault()
+    const onWheel = (e) => {
+      // normal scrolling inside the element is allowed
+      // but if we're at the top and scrolling up, or at the bottom and scrolling down,
+      // preventDefault so the page doesn't scroll.
+      const delta = e.deltaY;
+      const atTop = el.scrollTop === 0;
+      const atBottom =
+        Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight;
+
+      if ((delta < 0 && atTop) || (delta > 0 && atBottom)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      // else allow the element to scroll normally
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
   const sendEvent = (text, type = "info") => {
     window.dispatchEvent(
       new CustomEvent("eventstream", { detail: { text, type } })
@@ -576,8 +602,9 @@ export default function Home() {
               <div
                 role="button"
                 tabIndex={0}
-                className={`w-full md:w-auto bg-slate-800/50 border border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg transition-all text-center select-none cursor-pointer ${pressed ? "scale-95 shadow-inner" : ""
-                  }`}
+                className={`w-full md:w-auto bg-slate-800/50 border border-slate-700 text-slate-300 text-sm font-medium py-2 px-6 rounded-lg transition-all text-center select-none cursor-pointer ${
+                  pressed ? "scale-95 shadow-inner" : ""
+                }`}
                 onMouseDown={(e) => {
                   if (e.button !== 0) return;
                   isPressingRef.current = true;

@@ -158,221 +158,227 @@ export default function LiveSource({
           background: rgba(255,255,255,0.10);
         }
       `}</style>
-
-      <aside className="w-full md:w-[420px] bg-slate-900/80 border-l border-[#223649] rounded-none p-3 sticky top-14 h-[calc(100vh-56px)] flex flex-col">
-        {/* small header row like the screenshot */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <button className="text-slate-400 hover:text-white p-1" title="Back">
-              <FiChevronLeft />
-            </button>
-            <div>
-              <div className="text-xs font-mono text-slate-400">LIVE SOURCE</div>
-              <div className="text-sm font-semibold text-white -mt-0.5">
-                Live event stream
-              </div>
-            </div>
-          </div>
-
-          {/* small status dot on the right */}
-          <div className="flex items-center gap-2">
-            <span
-              className="w-3 h-3 rounded-full bg-emerald-400 ring-1 ring-emerald-500/30"
-              title="connected"
-            />
-          </div>
-        </div>
-
-        {/* Code pane — larger, dark, rounded */}
-        {codeVisible && (
-          <div className="mb-3">
-            <div className="relative rounded-lg bg-[#111217] border border-slate-800 overflow-hidden">
-              {/* small top bar for code area (file name / copy) */}
-              <div className="flex items-center justify-between px-3 py-2 border-b border-slate-800/60">
-                <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
-                  <span className="inline-block w-2 h-2 rounded-sm bg-pink-500 mr-1" />
-                  <span>src/demo.js</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    className="text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50"
-                    onClick={copyCode}
-                  >
-                    <FiCopy className="inline-block mr-1" /> Copy
-                  </button>
-                  <button
-                    className="text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50"
-                    onClick={() => {
-                      setCode(defaultCode);
-                      appendEvent({
-                        text: "> restored default demo code",
-                        type: "muted",
-                      });
-                    }}
-                  >
-                    Restore
-                  </button>
-                </div>
-              </div>
-
-              {/* --- REPLACED: code content now uses SyntaxHighlighter --- */}
-              <div className="live-source-scroll">
-                <SyntaxHighlighter
-                  language="javascript"
-                  style={atomDark}
-                  showLineNumbers={false}
-                  wrapLongLines={true}
-                  customStyle={{
-                    background: "transparent", // keep container background
-                    margin: 0,
-                    padding: "1rem",
-                    maxHeight: "260px",
-                    overflow: "auto",
-                    fontSize: "0.75rem",
-                    borderRadius: "0.5rem",
-                  }}
-                  codeTagProps={{
-                    style: {
-                      fontFamily:
-                        "ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace",
-                    },
-                  }}
-                >
-                  {code}
-                </SyntaxHighlighter>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* small toolbar row (kept but visually subtle) */}
-        <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
-          <div className="flex items-center gap-2">
-            <button
-              className="text-slate-300 px-2 py-1 rounded bg-slate-800/50"
-              onClick={sendDemoEvent}
-              title="Send demo event"
-            >
-              <FiPlay className="inline-block mr-1" /> Send
-            </button>
-            <button
-              className="px-2 py-1 rounded border border-slate-800 bg-slate-800/40"
-              onClick={clearEvents}
-              title="Clear stream"
-            >
-              <FiTrash2 />
-            </button>
-            <button
-              className="px-2 py-1 rounded border border-slate-800 bg-slate-800/40"
-              onClick={exportEvents}
-              title="Export stream"
-            >
-              <FiDownload />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <FiFilter className="text-slate-500" />
-            <select
-              className="bg-slate-800/40 border border-slate-800 text-slate-300 text-xs rounded px-2 py-1"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            >
-              <option value="all">All</option>
-              <option value="info">Info</option>
-              <option value="success">Success</option>
-              <option value="warning">Warning</option>
-              <option value="muted">Muted</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Event stream header (thin divider with label + right-side control) */}
-        <div className="flex items-center justify-between px-2 py-1 text-xs text-slate-400 bg-transparent border-t border-b border-slate-800/40 mb-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-block w-4 h-4 rounded bg-slate-800/60 flex items-center justify-center text-[10px] text-slate-300">
-              ▣
-            </span>
-            <span className="font-mono">EVENT STREAM</span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {/* small circular icon on right matching screenshot */}
-            <button
-              className="w-7 h-7 rounded-full bg-slate-800/50 flex items-center justify-center border border-slate-800 text-slate-300"
-              title="options"
-            >
-              <FiChevronDown />
-            </button>
-          </div>
-        </div>
-
-        {/* STREAM LIST (fills remaining height) */}
-        <div
-          ref={streamRef}
-          className="flex-1 overflow-auto bg-transparent rounded-md px-1 live-source-scroll"
-        >
-          {filtered.length === 0 ? (
-            <div className="text-xs text-slate-400 p-3 text-center">
-              No events yet — interact with the demo area.
-            </div>
-          ) : (
-            filtered.map((ev) => (
-              <div
-                key={ev.id}
-                className="px-3 py-2 rounded hover:bg-slate-800/40 transition flex flex-col gap-1"
+      <div className="border-l border-[#223649] h-full">
+        <aside className="w-full md:w-[420px] bg-slate-900/80  rounded-none p-3 sticky top-14 h-[calc(100vh-56px)] flex flex-col">
+          {/* small header row like the screenshot */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <button
+                className="text-slate-400 hover:text-white p-1"
+                title="Back"
               >
-                <div className="flex items-center gap-2">
-                  <div className="text-[11px] text-slate-500 font-mono w-20">
-                    {new Date(ev.id).toLocaleTimeString()}
-                  </div>
-                  <div
-                    className="flex-1 text-xs font-mono break-words"
-                    style={{
-                      color:
-                        ev.type === "success"
-                          ? "#6ee7b7"
-                          : ev.type === "warning"
-                          ? "#fb923c"
-                          : ev.type === "muted"
-                          ? "#94a3b8"
-                          : "#60a5fa",
-                    }}
-                  >
-                    {ev.text}
-                  </div>
+                <FiChevronLeft />
+              </button>
+              <div>
+                <div className="text-xs font-mono text-slate-400">
+                  LIVE SOURCE
+                </div>
+                <div className="text-sm font-semibold text-white -mt-0.5">
+                  Live event stream
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            </div>
 
-        {/* bottom input area (small) */}
-        <form
-          onSubmit={handleCommandSubmit}
-          className="mt-2 flex items-center gap-2"
-        >
-          <button
-            type="button"
-            className="text-slate-400 text-xs flex items-center px-2 py-2"
-            title="toggle"
+            {/* small status dot on the right */}
+            <div className="flex items-center gap-2">
+              <span
+                className="w-3 h-3 rounded-full bg-emerald-400 ring-1 ring-emerald-500/30"
+                title="connected"
+              />
+            </div>
+          </div>
+
+          {/* Code pane — larger, dark, rounded */}
+          {codeVisible && (
+            <div className="mb-3">
+              <div className="relative rounded-lg bg-[#111217] border border-slate-800 overflow-hidden">
+                {/* small top bar for code area (file name / copy) */}
+                <div className="flex items-center justify-between px-3 py-2 border-b border-slate-800/60">
+                  <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+                    <span className="inline-block w-2 h-2 rounded-sm bg-pink-500 mr-1" />
+                    <span>src/demo.js</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50"
+                      onClick={copyCode}
+                    >
+                      <FiCopy className="inline-block mr-1" /> Copy
+                    </button>
+                    <button
+                      className="text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50"
+                      onClick={() => {
+                        setCode(defaultCode);
+                        appendEvent({
+                          text: "> restored default demo code",
+                          type: "muted",
+                        });
+                      }}
+                    >
+                      Restore
+                    </button>
+                  </div>
+                </div>
+
+                {/* --- REPLACED: code content now uses SyntaxHighlighter --- */}
+                <div className="live-source-scroll">
+                  <SyntaxHighlighter
+                    language="javascript"
+                    style={atomDark}
+                    showLineNumbers={false}
+                    wrapLongLines={true}
+                    customStyle={{
+                      background: "transparent", // keep container background
+                      margin: 0,
+                      padding: "1rem",
+                      maxHeight: "260px",
+                      overflow: "auto",
+                      fontSize: "0.75rem",
+                      borderRadius: "0.5rem",
+                    }}
+                    codeTagProps={{
+                      style: {
+                        fontFamily:
+                          "ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace",
+                      },
+                    }}
+                  >
+                    {code}
+                  </SyntaxHighlighter>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* small toolbar row (kept but visually subtle) */}
+          <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <div className="flex items-center gap-2">
+              <button
+                className="text-slate-300 px-2 py-1 rounded bg-slate-800/50"
+                onClick={sendDemoEvent}
+                title="Send demo event"
+              >
+                <FiPlay className="inline-block mr-1" /> Send
+              </button>
+              <button
+                className="px-2 py-1 rounded border border-slate-800 bg-slate-800/40"
+                onClick={clearEvents}
+                title="Clear stream"
+              >
+                <FiTrash2 />
+              </button>
+              <button
+                className="px-2 py-1 rounded border border-slate-800 bg-slate-800/40"
+                onClick={exportEvents}
+                title="Export stream"
+              >
+                <FiDownload />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <FiFilter className="text-slate-500" />
+              <select
+                className="bg-slate-800/40 border border-slate-800 text-slate-300 text-xs rounded px-2 py-1"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              >
+                <option value="all">All</option>
+                <option value="info">Info</option>
+                <option value="success">Success</option>
+                <option value="warning">Warning</option>
+                <option value="muted">Muted</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Event stream header (thin divider with label + right-side control) */}
+          <div className="flex items-center justify-between px-2 py-1 text-xs text-slate-400 bg-transparent border-t border-b border-slate-800/40 mb-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-4 h-4 rounded bg-slate-800/60 flex items-center justify-center text-[10px] text-slate-300">
+                ▣
+              </span>
+              <span className="font-mono">EVENT STREAM</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* small circular icon on right matching screenshot */}
+              <button
+                className="w-7 h-7 rounded-full bg-slate-800/50 flex items-center justify-center border border-slate-800 text-slate-300"
+                title="options"
+              >
+                <FiChevronDown />
+              </button>
+            </div>
+          </div>
+
+          {/* STREAM LIST (fills remaining height) */}
+          <div
+            ref={streamRef}
+            className="flex-1 overflow-auto bg-transparent rounded-md px-1 live-source-scroll"
           >
-            <FiChevronRight />
-          </button>
-          <input
-            ref={inputRef}
-            placeholder="Type JS command..."
-            className="flex-1 bg-slate-800/50 border border-slate-800 text-slate-300 text-xs px-3 py-2 rounded outline-none focus:ring-1 focus:ring-sky-500"
-          />
-          <button
-            type="submit"
-            className="text-xs px-3 py-2 rounded bg-sky-600 text-white"
+            {filtered.length === 0 ? (
+              <div className="text-xs text-slate-400 p-3 text-center">
+                No events yet — interact with the demo area.
+              </div>
+            ) : (
+              filtered.map((ev) => (
+                <div
+                  key={ev.id}
+                  className="px-3 py-2 rounded hover:bg-slate-800/40 transition flex flex-col gap-1"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="text-[11px] text-slate-500 font-mono w-20">
+                      {new Date(ev.id).toLocaleTimeString()}
+                    </div>
+                    <div
+                      className="flex-1 text-xs font-mono break-words"
+                      style={{
+                        color:
+                          ev.type === "success"
+                            ? "#6ee7b7"
+                            : ev.type === "warning"
+                            ? "#fb923c"
+                            : ev.type === "muted"
+                            ? "#94a3b8"
+                            : "#60a5fa",
+                      }}
+                    >
+                      {ev.text}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* bottom input area (small) */}
+          <form
+            onSubmit={handleCommandSubmit}
+            className="mt-2 flex items-center gap-2"
           >
-            Run
-          </button>
-        </form>
-      </aside>
+            <button
+              type="button"
+              className="text-slate-400 text-xs flex items-center px-2 py-2"
+              title="toggle"
+            >
+              <FiChevronRight />
+            </button>
+            <input
+              ref={inputRef}
+              placeholder="Type JS command..."
+              className="flex-1 bg-slate-800/50 border border-slate-800 text-slate-300 text-xs px-3 py-2 rounded outline-none focus:ring-1 focus:ring-sky-500"
+            />
+            <button
+              type="submit"
+              className="text-xs px-3 py-2 rounded bg-sky-600 text-white"
+            >
+              Run
+            </button>
+          </form>
+        </aside>
+      </div>
     </>
   );
 }
