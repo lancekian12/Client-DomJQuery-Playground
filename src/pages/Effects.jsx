@@ -564,7 +564,7 @@ export default function EffectsLiveCode() {
 
   // ---------- UI JSX ----------
   return (
-    <main className="min-h-screen p-6 bg-white text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <main className="min-h-screen p-6  text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
       <div className="max-w-[1200px] mx-auto space-y-6">
         <header className="flex items-center justify-between">
           <div>
