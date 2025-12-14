@@ -1,4 +1,27 @@
 /* index.css (v4-friendly) ---------------------------------- */
 
-/* Tailwind v4 import (use this if @tailwind directives cause errors) */
+/* Tailwind v4 import */
 @import "tailwindcss";
+
+/* make the .dark variant use the .dark class on html (existing approach) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Prevent gray flash: ensure html background matches theme */
+html {
+  background-color: #ffffff; /* pure white for light */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* when .dark applied on html, use dark bg */
+:where(.dark) html,
+:where(.dark) body {
+  background-color: #0f172a; /* slate-900 */
+}
+
+/* small helpers (optional) */
+.transition-theme {
+  transition-property: background-color, color, border-color, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}

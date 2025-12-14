@@ -7,11 +7,12 @@ import FormPage from "./pages/Form";
 import Effects from "./pages/Effects";
 import Docs from "./pages/Docs";
 import Window from "./pages/Window";
+
 export default function App() {
   return (
     <BrowserRouter>
-      {/* root container: sets page background and text for both modes */}
-      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
+      {/* Root: white/light by default, dark overrides when .dark exists */}
+      <div className="min-h-screen bg-white text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
         <Routes>
           <Route path="/" element={<EventMasterLayout />}>
             <Route index element={<Home />} />

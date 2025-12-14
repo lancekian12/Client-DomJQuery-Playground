@@ -3,30 +3,41 @@ import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
 
 /**
- * Theme initialization executed at module load (client only).
- * This ensures the <html> receives the correct `dark` class
- * before React paints (avoids initial flash / mismatch).
+ * Immediate theme initialization at module load to avoid flash.
+ * (This runs once when the module is imported in the browser.)
  */
+(function initTheme() {
+  if (typeof window === "undefined") return;
+  try {
+    const stored = localStorage.getItem("theme");
+    if (stored === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (stored === "light") {
+      document.documentElement.classList.remove("dark");
+    } else {
+      // fallback to system
+      const prefersDark =
+        window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (prefersDark) document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    }
+  } catch (err) {
+    // ignore
+  }
+})();
+
 function getInitialTheme() {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "light";
   try {
     const stored = localStorage.getItem("theme");
     if (stored === "dark" || stored === "light") {
-      // apply immediately
-      if (stored === "dark") document.documentElement.classList.add("dark");
-      else document.documentElement.classList.remove("dark");
       return stored;
     }
-    // fallback to system preference
     const prefersDark =
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (prefersDark) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
+      window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
     return prefersDark ? "dark" : "light";
   } catch (err) {
-    console.log(err);
-    return "dark";
+    return "light";
   }
 }
 
@@ -55,7 +66,6 @@ export default function Header({ onToggleSidebar, onReset = () => {} }) {
     const onStorage = (e) => {
       if (e.key === "theme") {
         const incoming = e.newValue === "dark" ? "dark" : "light";
-        // only update if different
         setTheme(incoming);
       }
     };
@@ -69,13 +79,12 @@ export default function Header({ onToggleSidebar, onReset = () => {} }) {
   };
 
   return (
-    <header className="flex items-center justify-between px-4 sm:px-5 py-3 bg-slate-800/80 dark:bg-slate-900/90 border-b border-slate-700 z-40">
-      {/* --- keep the rest of your header markup exactly the same --- */}
+    <header className="flex items-center justify-between px-4 sm:px-5 py-3 bg-white dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 z-40 transition-colors duration-200">
       <div className="flex items-center gap-3">
         <button
           aria-label="Toggle sidebar"
           onClick={onToggleSidebar}
-          className="p-2 rounded-md hover:bg-slate-700/40 md:hidden"
+          className="p-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 md:hidden"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path
@@ -88,20 +97,16 @@ export default function Header({ onToggleSidebar, onReset = () => {} }) {
         </button>
 
         <Link to="/" className="flex items-center gap-3 no-underline">
-          <div className="flex items-center justify-center w-10 h-10 rounded-md border border-slate-700 bg-gradient-to-br from-slate-800/60 to-slate-900/60 p-1 shadow-sm">
-            <div className="w-8 h-8 rounded-sm bg-slate-900 flex items-center justify-center overflow-hidden">
-              <img
-                src={logo}
-                alt="EventMaster"
-                className="w-full h-full object-contain"
-              />
+          <div className="flex items-center justify-center w-10 h-10 rounded-md border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <div className="w-8 h-8 rounded-sm bg-white flex items-center justify-center overflow-hidden dark:bg-slate-900">
+              <img src={logo} alt="EventMaster" className="w-full h-full object-contain" />
             </div>
           </div>
 
           <div className="leading-tight hidden sm:block">
-            <div className="text-lg font-semibold text-slate-100">
+            <div className="text-lg font-semibold text-slate-800 dark:text-slate-100">
               EventMaster{" "}
-              <span className="text-sky-400 text-lg ml-1 font-normal">
+              <span className="text-sky-600 dark:text-sky-400 text-lg ml-1 font-normal">
                 Playground
               </span>
             </div>
@@ -111,99 +116,47 @@ export default function Header({ onToggleSidebar, onReset = () => {} }) {
 
       <div className="flex items-center gap-2">
         <nav className="hidden sm:flex items-center gap-4 text-sm">
-          <Link to="/docs" className="text-slate-300 hover:text-white">
+          <Link
+            to="/docs"
+            className="text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+          >
             Docs
           </Link>
         </nav>
 
-        {/* <button
-          type="button"
-          className="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-600 hover:bg-sky-700 text-white text-sm shadow"
-          onClick={() => {
-            if (onReset) {
-              onReset();
-              return;
-            }
-            const prev = theme;
-            setTimeout(() => setTheme(prev), 150);
-          }}
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            className="opacity-90"
-          >
-            <path
-              d="M21 12a9 9 0 1 1-3-6.7"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M21 3v6h-6"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Reset
-        </button> */}
-
-        {/* <button
+        <button
           aria-label="Toggle color theme"
           onClick={toggleTheme}
-          className="p-2 rounded-md hover:bg-slate-700/30"
+          className="    p-2 rounded-md
+    bg-transparent
+    border border-slate-300 dark:border-slate-600
+    hover:border-slate-400 dark:hover:border-slate-500
+    hover:bg-transparent
+    focus:outline-none focus:ring-2 focus:ring-sky-500/40
+    transition"
         >
           {theme === "dark" ? (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 3v2"
-                stroke="#FDE68A"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-              <path
-                d="M12 19v2"
-                stroke="#FDE68A"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-              <path
-                d="M4.2 4.2l1.4 1.4"
-                stroke="#FDE68A"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-              <path
-                d="M18.4 18.4l1.4 1.4"
-                stroke="#FDE68A"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-              <circle
-                cx="12"
-                cy="12"
-                r="4"
-                stroke="#FDE68A"
-                strokeWidth="1.6"
-              />
+            /* sun (indicates currently dark; press to go light) */
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M12 3v2" stroke="#FDE68A" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M12 19v2" stroke="#FDE68A" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M4.2 4.2l1.4 1.4" stroke="#FDE68A" strokeWidth="1.6" strokeLinecap="round" />
+              <path d="M18.4 18.4l1.4 1.4" stroke="#FDE68A" strokeWidth="1.6" strokeLinecap="round" />
+              <circle cx="12" cy="12" r="4" stroke="#FDE68A" strokeWidth="1.6" />
             </svg>
           ) : (
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            /* moon (indicates currently light; press to go dark) */
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
               <path
                 d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"
-                stroke="#93C5FD"
+                stroke="#0369A1"
                 strokeWidth="1.4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
             </svg>
           )}
-        </button> */}
+        </button>
       </div>
     </header>
   );

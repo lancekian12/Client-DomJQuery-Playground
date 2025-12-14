@@ -1,7 +1,7 @@
-// Docs.jsx
-import React, { useCallback } from "react";
+// src/pages/Docs.jsx
+import React, { useCallback, useEffect, useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { atomDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import {
   MdMouse,
   MdKeyboard,
@@ -13,18 +13,33 @@ import {
 } from "react-icons/md";
 import { FiCopy } from "react-icons/fi";
 
-/**
- * Documentation-only component.
- * - LiveSource-style code panes (copy button, dark container) using atomDark.
- * - No interactive demos, no event listeners running in this component.
- * - Expanded jQuery section with multiple topics & snippets.
- */
-
+/* ---------- CodePanel (theme-aware) ---------- */
 function CodePanel({ filename = "src/example.js", code = "" }) {
+  const [isDark, setIsDark] = useState(() =>
+    typeof document !== "undefined" ? document.documentElement.classList.contains("dark") : false
+  );
+
+  useEffect(() => {
+    function onStorage(e) {
+      if (e.key === "theme") setIsDark(e.newValue === "dark");
+    }
+    window.addEventListener("storage", onStorage);
+
+    const mo = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      mo.disconnect();
+    };
+  }, []);
+
   const copy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(code);
-      // optional UX: you could show a toast; docs file keeps it simple
+      // keep UX minimal in docs — no toast by default
     } catch (err) {
       console.warn("Copy failed", err);
     }
@@ -32,10 +47,22 @@ function CodePanel({ filename = "src/example.js", code = "" }) {
 
   return (
     <div className="mb-4">
-      <div className="relative rounded-lg bg-[#0c0f13] border border-slate-800 overflow-hidden">
+      <div
+        className={
+          isDark
+            ? "relative rounded-lg bg-[#0c0f13] border border-slate-800 overflow-hidden"
+            : "relative rounded-lg bg-slate-50 border border-slate-200 overflow-hidden"
+        }
+      >
         {/* top bar */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-slate-800/60">
-          <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+        <div
+          className={
+            isDark
+              ? "flex items-center justify-between px-3 py-2 border-b border-slate-800/60"
+              : "flex items-center justify-between px-3 py-2 border-b border-slate-200"
+          }
+        >
+          <div className={isDark ? "flex items-center gap-2 text-xs text-slate-400 font-mono" : "flex items-center gap-2 text-xs text-slate-500 font-mono"}>
             <span className="inline-block w-2 h-2 rounded-sm bg-pink-500 mr-1" />
             <span>{filename}</span>
           </div>
@@ -43,7 +70,11 @@ function CodePanel({ filename = "src/example.js", code = "" }) {
           <div className="flex items-center gap-2">
             <button
               onClick={copy}
-              className="text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50 flex items-center gap-2"
+              className={
+                isDark
+                  ? "text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50 flex items-center gap-2"
+                  : "text-xs px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+              }
             >
               <FiCopy /> Copy
             </button>
@@ -54,7 +85,7 @@ function CodePanel({ filename = "src/example.js", code = "" }) {
         <div className="live-source-scroll">
           <SyntaxHighlighter
             language="javascript"
-            style={atomDark}
+            style={isDark ? atomDark : oneLight}
             showLineNumbers={false}
             wrapLongLines={true}
             customStyle={{
@@ -228,15 +259,15 @@ $('#box').animate({ left: '200px', opacity: 0.8 }, 400)
     next();
   });
 
-$('#box').stop(true, true); // stop queue and jump to end`,
+$('#box').stop(true, true); // stop queue and jump to end`, 
 
   dataAttr: `// Data & attributes
 $('#card').data('id', 123);
-console.log($('#card').data('id'));
+console.log($('#card').data('id'))
 
 $('#img').attr('src', '/img.jpg');
 $('#link').prop('disabled', true);`,
-
+  
   chainingCallbacks: `// Chaining & callbacks
 $('#btn')
   .addClass('loading')
@@ -260,30 +291,30 @@ $('.title').highlight();`,
 /* ---------- Main component ---------- */
 export default function Docs() {
   return (
-    <div className="min-h-screen text-slate-200 p-6 lg:p-12">
+    <div className="min-h-screen text-slate-800 dark:bg-slate-900 dark:text-slate-100 p-6 lg:p-12 transition-colors duration-200">
       <div className="max-w-6xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white">DOM Events</h1>
-          <p className="text-slate-400 mt-3 leading-relaxed max-w-3xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">DOM Events</h1>
+          <p className="text-slate-700 dark:text-slate-400 mt-3 leading-relaxed max-w-3xl">
             The Document Object Model (DOM) enables JavaScript to react to user and browser actions.
             Below are common event topics plus an expanded jQuery cheatsheet. Each example is a short,
-            copy-ready snippet shown in a LiveSource-style code panel (dark container + copy).
+            copy-ready snippet shown in a LiveSource-style code panel (theme-aware).
             This file is documentation-only — no runtime testing or interactive demos.
           </p>
         </header>
 
         {/* Click */}
-        <section className="mb-8 rounded-xl border border-[#223649] bg-slate-800/60 p-6">
+        <section className="mb-8 rounded-xl border border-slate-200 dark:border-[#223649] bg-white dark:bg-slate-800/60 p-6 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded bg-slate-900/50"><MdMouse /></span>
-              <h2 className="text-xl font-semibold text-white">Click Events</h2>
+              <span className="p-2 rounded bg-slate-100 dark:bg-slate-900/50"><MdMouse className="text-slate-700 dark:text-slate-200" /></span>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Click Events</h2>
             </div>
-            <div className="text-xs font-mono bg-slate-800/60 text-slate-300 px-2 py-1 rounded border border-slate-700">MouseEvent</div>
+            <div className="text-xs font-mono bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">MouseEvent</div>
           </div>
 
-          <p className="text-slate-400 mt-3">
-            <strong>What:</strong> `click` fires when a pointing device button is pressed and released over an element.
+          <p className="text-slate-700 dark:text-slate-400 mt-3">
+            <strong>What:</strong> <code>click</code> fires when a pointing device button is pressed and released over an element.
           </p>
 
           <div className="mt-4">
@@ -292,60 +323,60 @@ export default function Docs() {
         </section>
 
         {/* Mouse */}
-        <section className="mb-8 rounded-xl border border-[#223649] bg-slate-800/60 p-6">
+        <section className="mb-8 rounded-xl border border-slate-200 dark:border-[#223649] bg-white dark:bg-slate-800/60 p-6 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded bg-slate-900/50"><MdMouse /></span>
-              <h2 className="text-xl font-semibold text-white">Mouse Events</h2>
+              <span className="p-2 rounded bg-slate-100 dark:bg-slate-900/50"><MdMouse className="text-slate-700 dark:text-slate-200" /></span>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Mouse Events</h2>
             </div>
-            <div className="text-xs font-mono bg-slate-800/60 text-slate-300 px-2 py-1 rounded border border-slate-700">MouseEvent</div>
+            <div className="text-xs font-mono bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">MouseEvent</div>
           </div>
-          <p className="text-slate-400 mt-3">Use `mouseenter`, `mouseleave`, `mousemove` for hover and cursor tracking; throttle heavy work.</p>
+          <p className="text-slate-700 dark:text-slate-400 mt-3">Use <code>mouseenter</code>, <code>mouseleave</code>, <code>mousemove</code> for hover and cursor tracking; throttle heavy work.</p>
           <div className="mt-4">
             <CodePanel filename="examples/mouse.js" code={SNIPPETS.mouse} />
           </div>
         </section>
 
         {/* Keyboard */}
-        <section className="mb-8 rounded-xl border border-[#223649] bg-slate-800/60 p-6">
+        <section className="mb-8 rounded-xl border border-slate-200 dark:border-[#223649] bg-white dark:bg-slate-800/60 p-6 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded bg-slate-900/50"><MdKeyboard /></span>
-              <h2 className="text-xl font-semibold text-white">Keyboard Events</h2>
+              <span className="p-2 rounded bg-slate-100 dark:bg-slate-900/50"><MdKeyboard className="text-slate-700 dark:text-slate-200" /></span>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Keyboard Events</h2>
             </div>
-            <div className="text-xs font-mono bg-slate-800/60 text-slate-300 px-2 py-1 rounded border border-slate-700">KeyboardEvent</div>
+            <div className="text-xs font-mono bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">KeyboardEvent</div>
           </div>
-          <p className="text-slate-400 mt-3">`keydown`/`keyup` are for physical key presses; `input` is for text fields (characters).</p>
+          <p className="text-slate-700 dark:text-slate-400 mt-3"><code>keydown</code>/<code>keyup</code> are for physical key presses; <code>input</code> is for text fields (characters).</p>
           <div className="mt-4">
             <CodePanel filename="examples/keyboard.js" code={SNIPPETS.keyboard} />
           </div>
         </section>
 
         {/* Form */}
-        <section className="mb-8 rounded-xl border border-[#223649] bg-slate-800/60 p-6">
+        <section className="mb-8 rounded-xl border border-slate-200 dark:border-[#223649] bg-white dark:bg-slate-800/60 p-6 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded bg-slate-900/50"><MdInput /></span>
-              <h2 className="text-xl font-semibold text-white">Form Events</h2>
+              <span className="p-2 rounded bg-slate-100 dark:bg-slate-900/50"><MdInput className="text-slate-700 dark:text-slate-200" /></span>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Form Events</h2>
             </div>
-            <div className="text-xs font-mono bg-slate-800/60 text-slate-300 px-2 py-1 rounded border border-slate-700">HTMLFormElement</div>
+            <div className="text-xs font-mono bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">HTMLFormElement</div>
           </div>
-          <p className="text-slate-400 mt-3">Use `submit` for final data collection; `input` for live validation and `change` for finalized changes.</p>
+          <p className="text-slate-700 dark:text-slate-400 mt-3">Use <code>submit</code> for final data collection; <code>input</code> for live validation and <code>change</code> for finalized changes.</p>
           <div className="mt-4">
             <CodePanel filename="examples/form.js" code={SNIPPETS.form} />
           </div>
         </section>
 
         {/* Window */}
-        <section className="mb-8 rounded-xl border border-[#223649] bg-slate-800/60 p-6">
+        <section className="mb-8 rounded-xl border border-slate-200 dark:border-[#223649] bg-white dark:bg-slate-800/60 p-6 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded bg-slate-900/50"><MdOpenInBrowser /></span>
-              <h2 className="text-xl font-semibold text-white">Window & Global Events</h2>
+              <span className="p-2 rounded bg-slate-100 dark:bg-slate-900/50"><MdOpenInBrowser className="text-slate-700 dark:text-slate-200" /></span>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Window & Global Events</h2>
             </div>
-            <div className="text-xs font-mono bg-slate-800/60 text-slate-300 px-2 py-1 rounded border border-slate-700">Window</div>
+            <div className="text-xs font-mono bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">Window</div>
           </div>
-          <p className="text-slate-400 mt-3">`resize`, `scroll`, `load` belong to the `window` — debounce expensive handlers.</p>
+          <p className="text-slate-700 dark:text-slate-400 mt-3"><code>resize</code>, <code>scroll</code>, <code>load</code> belong to the <code>window</code> — debounce expensive handlers.</p>
           <div className="mt-4">
             <CodePanel filename="examples/window.js" code={SNIPPETS.window} />
             <CodePanel filename="examples/debounce.js" code={SNIPPETS.debounce} />
@@ -353,39 +384,39 @@ export default function Docs() {
         </section>
 
         {/* Pointer & Touch */}
-        <section className="mb-8 rounded-xl border border-[#223649] bg-slate-800/60 p-6">
+        <section className="mb-8 rounded-xl border border-slate-200 dark:border-[#223649] bg-white dark:bg-slate-800/60 p-6 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded bg-slate-900/50"><MdTouchApp /></span>
-              <h2 className="text-xl font-semibold text-white">Pointer & Touch Events</h2>
+              <span className="p-2 rounded bg-slate-100 dark:bg-slate-900/50"><MdTouchApp className="text-slate-700 dark:text-slate-200" /></span>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Pointer & Touch Events</h2>
             </div>
-            <div className="text-xs font-mono bg-slate-800/60 text-slate-300 px-2 py-1 rounded border border-slate-700">PointerEvent</div>
+            <div className="text-xs font-mono bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">PointerEvent</div>
           </div>
-          <p className="text-slate-400 mt-3">Prefer `pointer*` for unified handling across mouse/pen/touch; keep `touch*` only for low-level touch control.</p>
+          <p className="text-slate-700 dark:text-slate-400 mt-3">Prefer <code>pointer*</code> for unified handling across mouse/pen/touch; keep <code>touch*</code> only for low-level touch control.</p>
           <div className="mt-4">
             <CodePanel filename="examples/pointer.js" code={SNIPPETS.pointer} />
           </div>
         </section>
 
         {/* Drag & Drop */}
-        <section className="mb-8 rounded-xl border border-[#223649] bg-slate-800/60 p-6">
+        <section className="mb-8 rounded-xl border border-slate-200 dark:border-[#223649] bg-white dark:bg-slate-800/60 p-6 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded bg-slate-900/50"><MdSwapHoriz /></span>
-              <h2 className="text-xl font-semibold text-white">Drag & Drop</h2>
+              <span className="p-2 rounded bg-slate-100 dark:bg-slate-900/50"><MdSwapHoriz className="text-slate-700 dark:text-slate-200" /></span>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Drag & Drop</h2>
             </div>
-            <div className="text-xs font-mono bg-slate-800/60 text-slate-300 px-2 py-1 rounded border border-slate-700">Drag & Drop API</div>
+            <div className="text-xs font-mono bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">Drag & Drop API</div>
           </div>
-          <p className="text-slate-400 mt-3">HTML5 Drag & Drop is desktop-friendly; for touch use pointer-based solutions.</p>
+          <p className="text-slate-700 dark:text-slate-400 mt-3">HTML5 Drag & Drop is desktop-friendly; for touch use pointer-based solutions.</p>
           <div className="mt-4">
             <CodePanel filename="examples/drag.js" code={SNIPPETS.drag} />
           </div>
         </section>
 
         {/* Focus & Propagation & Custom */}
-        <section className="mb-8 rounded-xl border border-[#223649] bg-slate-800/60 p-6">
-          <h2 className="text-xl font-semibold text-white">Focus, Propagation & Custom Events</h2>
-          <div className="mt-3 text-slate-400">
+        <section className="mb-8 rounded-xl border border-slate-200 dark:border-[#223649] bg-white dark:bg-slate-800/60 p-6 transition-colors duration-200">
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Focus, Propagation & Custom Events</h2>
+          <div className="mt-3 text-slate-700 dark:text-slate-400">
             <p><strong>Focus/Blur:</strong> validation and accessibility. <strong>Propagation:</strong> capture → target → bubble. <strong>CustomEvent:</strong> domain-specific messages.</p>
           </div>
 
@@ -397,65 +428,65 @@ export default function Docs() {
         </section>
 
         {/* jQuery Expanded */}
-        <section className="mb-12 rounded-xl border border-[#223649] bg-slate-800/60 p-6">
+        <section className="mb-12 rounded-xl border border-slate-200 dark:border-[#223649] bg-white dark:bg-slate-800/60 p-6 transition-colors duration-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="p-2 rounded bg-slate-900/50"><MdFilterVintage /></span>
-              <h2 className="text-xl font-semibold text-white">jQuery — Expanded Cheatsheet</h2>
+              <span className="p-2 rounded bg-slate-100 dark:bg-slate-900/50"><MdFilterVintage className="text-slate-700 dark:text-slate-200" /></span>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-white">jQuery — Expanded Cheatsheet</h2>
             </div>
-            <div className="text-xs font-mono bg-slate-800/60 text-slate-300 px-2 py-1 rounded border border-slate-700">jQuery</div>
+            <div className="text-xs font-mono bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">jQuery</div>
           </div>
 
-          <p className="text-slate-400 mt-3">
+          <p className="text-slate-700 dark:text-slate-400 mt-3">
             jQuery provides concise helpers for effects, traversal, events, AJAX, utilities and plugin patterns. Below are categorized snippets for common tasks.
           </p>
 
           <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h3 className="text-white font-semibold mb-2">Effects</h3>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-2">Effects</h3>
               <CodePanel filename="examples/jquery/effects.js" code={JQ.effects} />
 
-              <h3 className="text-white font-semibold mb-2">DOM Manipulation</h3>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-2">DOM Manipulation</h3>
               <CodePanel filename="examples/jquery/dom.js" code={JQ.domManipulation} />
 
-              <h3 className="text-white font-semibold mb-2">Events & Delegation</h3>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-2">Events & Delegation</h3>
               <CodePanel filename="examples/jquery/events.js" code={JQ.eventsDelegation} />
             </div>
 
             <div>
-              <h3 className="text-white font-semibold mb-2">AJAX & Helpers</h3>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-2">AJAX & Helpers</h3>
               <CodePanel filename="examples/jquery/ajax.js" code={JQ.ajaxBasics} />
 
-              <h3 className="text-white font-semibold mb-2">Traversal & Filters</h3>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-2">Traversal & Filters</h3>
               <CodePanel filename="examples/jquery/traverse.js" code={JQ.traverse} />
 
-              <h3 className="text-white font-semibold mb-2">Utilities & Iteration</h3>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-2">Utilities & Iteration</h3>
               <CodePanel filename="examples/jquery/utils.js" code={JQ.utilities} />
             </div>
 
             <div>
-              <h3 className="text-white font-semibold mb-2">Animations & Queue</h3>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-2">Animations & Queue</h3>
               <CodePanel filename="examples/jquery/animate.js" code={JQ.animateQueue} />
 
-              <h3 className="text-white font-semibold mb-2">Data & Attributes</h3>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-2">Data & Attributes</h3>
               <CodePanel filename="examples/jquery/data.js" code={JQ.dataAttr} />
             </div>
 
             <div>
-              <h3 className="text-white font-semibold mb-2">Chaining & Callbacks</h3>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-2">Chaining & Callbacks</h3>
               <CodePanel filename="examples/jquery/chain.js" code={JQ.chainingCallbacks} />
 
-              <h3 className="text-white font-semibold mb-2">Plugin Pattern</h3>
+              <h3 className="text-slate-900 dark:text-white font-semibold mb-2">Plugin Pattern</h3>
               <CodePanel filename="examples/jquery/plugin.js" code={JQ.plugins} />
             </div>
           </div>
 
-          <p className="text-slate-400 mt-4">
+          <p className="text-slate-700 dark:text-slate-400 mt-4">
             <strong>Notes:</strong> Prefer modern Web APIs and CSS transitions for new projects. Use jQuery for quick scripts, legacy projects, or when you need concise cross-browser workarounds.
           </p>
         </section>
 
-        <footer className="text-slate-400 text-sm mb-6">
+        <footer className="text-slate-600 dark:text-slate-400 text-sm mb-6">
           <p>
             This file is documentation-only and intentionally avoids running event listeners inside the docs.
             Copy any snippet and paste it into your console or project file to test.
@@ -465,26 +496,17 @@ export default function Docs() {
 
       {/* scrollbar styles (used by .live-source-scroll) */}
       <style>{`
-        .live-source-scroll {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(255,255,255,0.06) #334155;
-        }
-        .live-source-scroll::-webkit-scrollbar {
-          width: 10px;
-          height: 10px;
-        }
-        .live-source-scroll::-webkit-scrollbar-track {
-          background: #334155;
-        }
-        .live-source-scroll::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,0.06);
-          border-radius: 9999px;
-          border: 2px solid transparent;
-          background-clip: padding-box;
-        }
-        .live-source-scroll::-webkit-scrollbar-thumb:hover {
-          background: rgba(255,255,255,0.10);
-        }
+        .live-source-scroll { scrollbar-width: thin; }
+        /* light mode */
+        .live-source-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+        .live-source-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .live-source-scroll::-webkit-scrollbar-thumb { background: rgba(2,6,23,0.06); border-radius: 9999px; border: 2px solid transparent; background-clip: padding-box; }
+        .live-source-scroll::-webkit-scrollbar-thumb:hover { background: rgba(2,6,23,0.10); }
+
+        /* dark mode overrides when .dark present on <html> */
+        .dark .live-source-scroll::-webkit-scrollbar-track { background: #334155; }
+        .dark .live-source-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); }
+        .dark .live-source-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.10); }
       `}</style>
     </div>
   );

@@ -1,4 +1,3 @@
-// src/components/Form.jsx
 import React, { useEffect, useRef, useState } from "react";
 import {
   MdPerson,
@@ -117,22 +116,22 @@ form.addEventListener("submit", (e) => {
   }
 
   return (
-    <main className="p-6 lg:p-10 flex-1">
+    <main className="p-6 lg:p-10 flex-1 transition-colors duration-200 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
       <div className="max-w-6xl mx-auto flex flex-col gap-6">
         {/* TITLE + DESCRIPTION: moved outside the card (as requested) */}
         <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-bold text-white tracking-tight">{title}</h2>
-          <p className="text-slate-400 mt-1">{description}</p>
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{title}</h2>
+          <p className="text-slate-700 dark:text-slate-400 mt-1">{description}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left: form card spanning 2 columns on md */}
-          <div className="md:col-span-2 rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col gap-4">
+          <div className="md:col-span-2 rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-6 flex flex-col gap-4 transition-colors duration-200">
             <form id="demo-form" onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Row 1: Text & Email */}
               <div>
-                <label htmlFor="f-name" className="text-xs font-semibold text-slate-400 block mb-2 flex items-center gap-2">
-                  <MdPerson className="text-slate-300" />
+                <label htmlFor="f-name" className="text-xs font-semibold text-slate-700 dark:text-slate-400 block mb-2 flex items-center gap-2">
+                  <MdPerson className="text-slate-600 dark:text-slate-300" />
                   <span>TEXT INPUT</span>
                 </label>
                 <input
@@ -145,13 +144,13 @@ form.addEventListener("submit", (e) => {
                   onChange={handleChange}
                   onInput={handleInput}
                   placeholder="e.g. John Doe"
-                  className="w-full bg-slate-800/40 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="mt-1 w-full bg-white border border-slate-200 rounded px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-200"
                 />
               </div>
 
               <div>
-                <label htmlFor="f-email" className="text-xs font-semibold text-slate-400 block mb-2 flex items-center gap-2">
-                  <MdEmail className="text-slate-300" />
+                <label htmlFor="f-email" className="text-xs font-semibold text-slate-700 dark:text-slate-400 block mb-2 flex items-center gap-2">
+                  <MdEmail className="text-slate-600 dark:text-slate-300" />
                   <span>EMAIL INPUT</span>
                 </label>
                 <input
@@ -164,14 +163,14 @@ form.addEventListener("submit", (e) => {
                   onChange={handleChange}
                   onInput={handleInput}
                   placeholder="john@example.com"
-                  className="w-full bg-slate-800/40 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="mt-1 w-full bg-white border border-slate-200 rounded px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-200"
                 />
               </div>
 
               {/* Row 2: Password & Number */}
               <div>
-                <label htmlFor="f-password" className="text-xs font-semibold text-slate-400 block mb-2 flex items-center gap-2">
-                  <MdLock className="text-slate-300" />
+                <label htmlFor="f-password" className="text-xs font-semibold text-slate-700 dark:text-slate-400 block mb-2 flex items-center gap-2">
+                  <MdLock className="text-slate-600 dark:text-slate-300" />
                   <span>PASSWORD</span>
                 </label>
                 <input
@@ -184,13 +183,13 @@ form.addEventListener("submit", (e) => {
                   onChange={handleChange}
                   onInput={handleInput}
                   placeholder="••••••••"
-                  className="w-full bg-slate-800/40 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="mt-1 w-full bg-white border border-slate-200 rounded px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-200"
                 />
               </div>
 
               <div>
-                <label htmlFor="f-number" className="text-xs font-semibold text-slate-400 block mb-2 flex items-center gap-2">
-                  <MdNumbers className="text-slate-300" />
+                <label htmlFor="f-number" className="text-xs font-semibold text-slate-700 dark:text-slate-400 block mb-2 flex items-center gap-2">
+                  <MdNumbers className="text-slate-600 dark:text-slate-300" />
                   <span>NUMBER</span>
                 </label>
                 <input
@@ -203,13 +202,13 @@ form.addEventListener("submit", (e) => {
                   onBlur={handleBlur}
                   onChange={handleChange}
                   onInput={handleInput}
-                  className="w-full bg-slate-800/40 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="mt-1 w-full bg-white border border-slate-200 rounded px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-200"
                 />
               </div>
 
               {/* Row 3: Select & Preference (radio) */}
               <div>
-                <label htmlFor="f-role" className="text-xs font-semibold text-slate-400 block mb-2">SELECT DROPDOWN</label>
+                <label htmlFor="f-role" className="text-xs font-semibold text-slate-700 dark:text-slate-400 block mb-2">SELECT DROPDOWN</label>
                 <select
                   id="f-role"
                   name="role"
@@ -217,7 +216,7 @@ form.addEventListener("submit", (e) => {
                   onFocus={handleFocus}
                   onBlur={handleBlur}
                   onChange={handleChange}
-                  className="w-full bg-slate-800/40 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="mt-1 w-full bg-white border border-slate-200 rounded px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-200"
                 >
                   <option value="">Select a role...</option>
                   <option value="frontend">Frontend</option>
@@ -227,9 +226,9 @@ form.addEventListener("submit", (e) => {
               </div>
 
               <div className="flex flex-col">
-                <label className="text-xs font-semibold text-slate-400 block mb-2">PREFERENCE</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-400 block mb-2">PREFERENCE</label>
                 <div className="flex items-center gap-4">
-                  <label className="inline-flex items-center gap-2 text-slate-300">
+                  <label className="inline-flex items-center gap-2 text-slate-800 dark:text-slate-300">
                     <input
                       type="radio"
                       name="preference"
@@ -242,7 +241,7 @@ form.addEventListener("submit", (e) => {
                     />
                     <span className="text-xs">Email</span>
                   </label>
-                  <label className="inline-flex items-center gap-2 text-slate-300">
+                  <label className="inline-flex items-center gap-2 text-slate-800 dark:text-slate-300">
                     <input
                       type="radio"
                       name="preference"
@@ -260,7 +259,7 @@ form.addEventListener("submit", (e) => {
 
               {/* Row 4: Textarea (full width) */}
               <div className="md:col-span-2">
-                <label htmlFor="f-message" className="text-xs font-semibold text-slate-400 block mb-2">TEXT AREA</label>
+                <label htmlFor="f-message" className="text-xs font-semibold text-slate-700 dark:text-slate-400 block mb-2">TEXT AREA</label>
                 <textarea
                   id="f-message"
                   name="message"
@@ -271,13 +270,13 @@ form.addEventListener("submit", (e) => {
                   onChange={handleChange}
                   onInput={handleInput}
                   placeholder="Tell us about your coding journey..."
-                  className="w-full bg-slate-800/40 border border-slate-700 rounded px-3 py-2 text-slate-200 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="mt-1 w-full bg-white border border-slate-200 rounded px-3 py-2 text-slate-800 resize-none focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-200"
                 />
               </div>
 
               {/* Row 5: Checkbox + Submit */}
               <div className="flex items-center gap-3">
-                <label className="inline-flex items-center gap-2 text-slate-300">
+                <label className="inline-flex items-center gap-2 text-slate-800 dark:text-slate-300">
                   <input
                     id="f-accept"
                     name="accepted"
@@ -306,29 +305,29 @@ form.addEventListener("submit", (e) => {
 
           {/* Right column: Event Inspector + Submission status */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-xl border border-[#223649] bg-slate-800/60 p-4 flex flex-col gap-3">
+            <div className="rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-4 flex flex-col gap-3 transition-colors duration-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs font-mono text-slate-400">EVENT INSPECTOR</div>
-                  <h4 className="text-lg font-semibold text-white mt-1">Last Event Type</h4>
+                  <div className="text-xs font-mono text-slate-600 dark:text-slate-400">EVENT INSPECTOR</div>
+                  <h4 className="text-lg font-semibold text-slate-900 dark:text-white mt-1">Last Event Type</h4>
                 </div>
-                <div className="text-sm text-slate-400">{inspector.lastEventType}</div>
+                <div className="text-sm text-slate-700 dark:text-slate-400">{inspector.lastEventType}</div>
               </div>
 
               <div className="flex flex-col gap-2">
-                <div className="text-xs text-slate-400">Target Element ID</div>
-                <div className="bg-slate-900/40 border border-slate-700 rounded px-2 py-1 text-slate-300 font-mono">{inspector.targetId ?? "—"}</div>
+                <div className="text-xs text-slate-600 dark:text-slate-400">Target Element ID</div>
+                <div className="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 font-mono dark:bg-slate-900/40 dark:border-slate-700 dark:text-slate-300">{inspector.targetId ?? "—"}</div>
 
-                <div className="text-xs text-slate-400 mt-2">Current Value</div>
-                <div className="bg-slate-900/40 border border-slate-700 rounded px-2 py-2 text-slate-200 font-mono break-words min-h-[48px]">
+                <div className="text-xs text-slate-600 dark:text-slate-400 mt-2">Current Value</div>
+                <div className="bg-slate-50 border border-slate-200 rounded px-2 py-2 text-xs text-slate-700 font-mono break-words min-h-[48px] dark:bg-slate-900/40 dark:border-slate-700 dark:text-slate-200">
                   {inspector.currentValue || "—"}
                 </div>
 
                 <div className="flex items-center justify-between mt-2">
-                  <div className="text-xs text-slate-400">Validation State</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400">Validation State</div>
                   <div>
                     {inspector.validationState === "valid" && (
-                      <span className="inline-flex items-center gap-2 bg-emerald-600/90 text-black text-xs px-2 py-1 rounded">
+                      <span className="inline-flex items-center gap-2 bg-emerald-200 text-emerald-800 text-xs px-2 py-1 rounded">
                         <MdCheckCircle /> Valid Input
                       </span>
                     )}
@@ -338,30 +337,30 @@ form.addEventListener("submit", (e) => {
                       </span>
                     )}
                     {!inspector.validationState && (
-                      <span className="inline-flex items-center gap-2 bg-slate-800/40 text-slate-300 text-xs px-2 py-1 rounded">—</span>
+                      <span className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded dark:bg-slate-800/40 dark:text-slate-300">—</span>
                     )}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-xl border border-[#223649] bg-slate-800/60 p-4">
+            <div className="rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-4 transition-colors duration-200">
               <div className="flex items-start gap-3">
                 <div>
-                  <div className="text-xs font-mono text-slate-400">SUBMISSION STATUS</div>
+                  <div className="text-xs font-mono text-slate-600 dark:text-slate-400">SUBMISSION STATUS</div>
                   <div className="mt-2">
                     {submissionLog.prevented ? (
                       <div className="flex items-center gap-2">
-                        <MdWarningAmber className="text-amber-300" />
-                        <div className="text-sm text-amber-300 font-semibold">Warning: preventDefault()</div>
+                        <MdWarningAmber className="text-amber-500" />
+                        <div className="text-sm text-amber-700 font-semibold">Warning: preventDefault()</div>
                       </div>
                     ) : (
-                      <div className="text-sm text-slate-300 font-semibold">Not submitted</div>
+                      <div className="text-sm text-slate-700 font-semibold dark:text-slate-300">Not submitted</div>
                     )}
-                    <div className="text-xs text-slate-400 mt-2">{submissionLog.message || "The form will not actually submit to a server. We are intercepting the submit event to show this message."}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-2">{submissionLog.message || "The form will not actually submit to a server. We are intercepting the submit event to show this message."}</div>
 
-                    <div className="mt-3 text-xs text-slate-400">
-                      <div>Last submitted: <span className="text-slate-200 ml-1">{submissionLog.lastSubmitted ?? "—"}</span></div>
+                    <div className="mt-3 text-xs text-slate-600 dark:text-slate-400">
+                      <div>Last submitted: <span className="text-slate-800 dark:text-slate-200 ml-1">{submissionLog.lastSubmitted ?? "—"}</span></div>
                     </div>
                   </div>
                 </div>
@@ -369,7 +368,7 @@ form.addEventListener("submit", (e) => {
 
               <div className="mt-4">
                 <button
-                  className="text-xs px-2 py-1 rounded border border-slate-800 bg-slate-800/40 text-slate-300"
+                  className="text-xs px-2 py-1 rounded border border-slate-200 bg-slate-50 text-slate-700 dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-300"
                   onClick={() => {
                     setSubmissionLog({ lastSubmitted: null, prevented: false, message: "" });
                     sendStream({ text: "submission log cleared", type: "muted" });

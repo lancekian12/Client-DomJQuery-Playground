@@ -1,4 +1,3 @@
-// src/layouts/EventMasterLayout.jsx
 import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
@@ -30,14 +29,13 @@ export default function EventMasterLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
+    <div className="min-h-screen bg-white text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
       <Header
         onToggleSidebar={() => setSidebarOpen((s) => !s)}
         onReset={reset}
       />
 
       <div className="flex min-h-[calc(100vh-56px)]">
-        {" "}
         {/* Left sidebar (desktop static) */}
         {isDesktop && (
           <Sidebar
@@ -47,13 +45,15 @@ export default function EventMasterLayout() {
             onReset={reset}
           />
         )}
+
         {/* Main content area */}
-        <main className="flex-1 min-h-[calc(100vh-56px)] p-4 sm:p-6 overflow-auto">
+        <main className="flex-1 min-h-[calc(100vh-56px)] p-4 sm:p-6 overflow-auto bg-slate-50 dark:bg-transparent transition-colors duration-200">
           <div className="max-w-6xl mx-auto">
             <Outlet />
           </div>
         </main>
-        {/* LiveSource: visible on desktop to the right; on mobile it will collapse (component handles responsive behavior) */}
+
+        {/* LiveSource: visible on desktop to the right */}
         <div className="hidden md:block">
           <LiveSource />
         </div>

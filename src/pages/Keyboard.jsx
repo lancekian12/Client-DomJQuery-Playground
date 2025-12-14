@@ -1,6 +1,5 @@
-// src/components/Keyboard.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { MdKeyboard, MdKeyboardArrowDown, MdSportsEsports} from "react-icons/md";
+import { MdKeyboard, MdKeyboardArrowDown, MdSportsEsports } from "react-icons/md";
 
 export default function Keyboard() {
   const [keyInfo, setKeyInfo] = useState({ key: "", code: "", which: null });
@@ -97,13 +96,13 @@ window.addEventListener("keydown", (e) => {
   }, []);
 
   return (
-    <main className="flex-1 overflow-y-auto p-6 lg:p-10">
+    <main className="flex-1 overflow-y-auto p-6 lg:p-10 text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
       <div className="max-w-4xl mx-auto flex flex-col gap-8">
         <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-bold text-white tracking-tight">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
             DOM & jQuery Playground
           </h2>
-          <p className="text-slate-400">
+          <p className="text-slate-700 dark:text-slate-400">
             Keyboard Interaction Lab — focus the input and press keys to see
             live values.
           </p>
@@ -111,14 +110,14 @@ window.addEventListener("keydown", (e) => {
 
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
-              <span className="p-1 rounded bg-slate-900/50 text-primary">
+            <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900 dark:text-white">
+              <span className="p-1 rounded bg-slate-50 dark:bg-slate-900/50 text-sky-600 dark:text-sky-400">
                 <MdKeyboard />
               </span>
               Keyboard Interaction Lab
             </h3>
             <div className="flex gap-2">
-              <span className="text-xs font-mono bg-slate-800/60 text-slate-300 px-2 py-1 rounded border border-slate-700">
+              <span className="text-xs font-mono bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">
                 KeyboardEvent
               </span>
             </div>
@@ -127,14 +126,14 @@ window.addEventListener("keydown", (e) => {
           {/* GRID: Key Capture spans full width on md, Modifier + WASD below */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Key Capture - spans both columns on md */}
-            <div className="md:col-span-2 rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col gap-4 relative">
+            <div className="md:col-span-2 rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-6 flex flex-col gap-4 relative transition-colors duration-200">
               <div className="flex items-start gap-3">
-                <div className="p-3 rounded-full bg-slate-900/60 text-primary">
+                <div className="p-3 rounded-full bg-slate-50 dark:bg-slate-900/60 text-sky-600">
                   <MdKeyboard size={20} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-white">Key Capture</h4>
-                  <p className="text-xs text-slate-400">
+                  <h4 className="font-semibold text-slate-900 dark:text-white">Key Capture</h4>
+                  <p className="text-xs text-slate-700 dark:text-slate-400">
                     Focus the input and start typing to see key codes in
                     real-time.
                   </p>
@@ -145,33 +144,33 @@ window.addEventListener("keydown", (e) => {
                 ref={inputRef}
                 onKeyDown={(e) => handleKeyDown(e)}
                 onKeyUp={(e) => handleKeyUp(e)}
-                className="mt-2 w-full bg-slate-800/40 border border-slate-700 rounded px-3 py-2 text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="mt-2 w-full bg-white border border-slate-200 rounded px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-200"
                 placeholder="Press any key here..."
                 aria-label="key-capture-input"
               />
 
               <div className="mt-4 grid grid-cols-3 gap-3">
-                <div className="bg-slate-900/40 p-3 rounded text-center">
-                  <div className="text-xs text-slate-400 uppercase font-mono">
+                <div className="bg-slate-50 p-3 rounded text-center dark:bg-slate-900/40">
+                  <div className="text-xs text-slate-500 uppercase font-mono">
                     Key
                   </div>
-                  <div className="mt-1 text-white font-semibold text-lg">
+                  <div className="mt-1 text-slate-900 font-semibold text-lg dark:text-white">
                     {keyInfo.key || "—"}
                   </div>
                 </div>
-                <div className="bg-slate-900/40 p-3 rounded text-center">
-                  <div className="text-xs text-slate-400 uppercase font-mono">
+                <div className="bg-slate-50 p-3 rounded text-center dark:bg-slate-900/40">
+                  <div className="text-xs text-slate-500 uppercase font-mono">
                     Code
                   </div>
-                  <div className="mt-1 text-sky-400 font-semibold">
+                  <div className="mt-1 text-sky-600 font-semibold dark:text-sky-400">
                     {keyInfo.code || "—"}
                   </div>
                 </div>
-                <div className="bg-slate-900/40 p-3 rounded text-center">
-                  <div className="text-xs text-slate-400 uppercase font-mono">
+                <div className="bg-slate-50 p-3 rounded text-center dark:bg-slate-900/40">
+                  <div className="text-xs text-slate-500 uppercase font-mono">
                     Which
                   </div>
-                  <div className="mt-1 text-emerald-400 font-semibold">
+                  <div className="mt-1 text-emerald-600 font-semibold dark:text-emerald-400">
                     {keyInfo.which || "—"}
                   </div>
                 </div>
@@ -179,12 +178,12 @@ window.addEventListener("keydown", (e) => {
             </div>
 
             {/* Modifier Test */}
-            <div className="rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col gap-4 items-center justify-center">
-              <div className="p-3 rounded-full bg-slate-900/60 text-yellow-300">
+            <div className="rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-6 flex flex-col gap-4 items-center justify-center transition-colors duration-200">
+              <div className="p-3 rounded-full bg-slate-50 dark:bg-slate-900/60 text-amber-600">
                 <MdKeyboardArrowDown size={22} />
               </div>
-              <h4 className="font-semibold text-white">Modifier Test</h4>
-              <p className="text-xs text-slate-400 text-center max-w-[220px]">
+              <h4 className="font-semibold text-slate-900 dark:text-white">Modifier Test</h4>
+              <p className="text-xs text-slate-700 dark:text-slate-400 text-center max-w-[220px]">
                 Hold modifier keys to see them light up.
               </p>
 
@@ -192,10 +191,10 @@ window.addEventListener("keydown", (e) => {
                 {Object.keys(modifiers).map((m) => (
                   <div
                     key={m}
-                    className={`px-3 py-1 rounded text-sm font-mono border border-slate-700 select-none ${
+                    className={`px-3 py-1 rounded text-sm font-mono border select-none ${
                       modifiers[m]
-                        ? "bg-sky-600/80 text-white ring-2 ring-sky-400"
-                        : "bg-slate-800/30 text-slate-300"
+                        ? "bg-sky-600/80 text-white ring-2 ring-sky-400 border-sky-600/80"
+                        : "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/30 dark:text-slate-300 dark:border-slate-700"
                     }`}
                   >
                     {m.toUpperCase()}
@@ -205,12 +204,12 @@ window.addEventListener("keydown", (e) => {
             </div>
 
             {/* WASD Control */}
-            <div className="rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col gap-4 items-center justify-center">
-              <div className="p-3 rounded-full bg-slate-900/60 text-green-400 flex items-center justify-center">
+            <div className="rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-6 flex flex-col gap-4 items-center justify-center transition-colors duration-200">
+              <div className="p-3 rounded-full bg-slate-50 dark:bg-slate-900/60 text-emerald-600 flex items-center justify-center">
                 <MdSportsEsports size={24} />
               </div>
-              <h4 className="font-semibold text-white">WASD Control</h4>
-              <p className="text-xs text-slate-400 text-center max-w-[220px]">
+              <h4 className="font-semibold text-slate-900 dark:text-white">WASD Control</h4>
+              <p className="text-xs text-slate-700 dark:text-slate-400 text-center max-w-[220px]">
                 Press W, A, S, D to highlight keys.
               </p>
 
@@ -219,8 +218,8 @@ window.addEventListener("keydown", (e) => {
                 <div
                   className={`w-14 h-14 rounded-lg flex items-center justify-center font-semibold text-lg ${
                     wasd.W
-                      ? "bg-emerald-500 text-black"
-                      : "bg-slate-800/40 text-slate-300"
+                      ? "bg-emerald-400 text-black"
+                      : "bg-slate-100 text-slate-700 dark:bg-slate-800/40 dark:text-slate-300"
                   }`}
                 >
                   W
@@ -230,8 +229,8 @@ window.addEventListener("keydown", (e) => {
                 <div
                   className={`w-14 h-14 rounded-lg flex items-center justify-center font-semibold text-lg ${
                     wasd.A
-                      ? "bg-emerald-500 text-black"
-                      : "bg-slate-800/40 text-slate-300"
+                      ? "bg-emerald-400 text-black"
+                      : "bg-slate-100 text-slate-700 dark:bg-slate-800/40 dark:text-slate-300"
                   }`}
                 >
                   A
@@ -239,8 +238,8 @@ window.addEventListener("keydown", (e) => {
                 <div
                   className={`w-14 h-14 rounded-lg flex items-center justify-center font-semibold text-lg ${
                     wasd.S
-                      ? "bg-emerald-500 text-black"
-                      : "bg-slate-800/40 text-slate-300"
+                      ? "bg-emerald-400 text-black"
+                      : "bg-slate-100 text-slate-700 dark:bg-slate-800/40 dark:text-slate-300"
                   }`}
                 >
                   S
@@ -248,8 +247,8 @@ window.addEventListener("keydown", (e) => {
                 <div
                   className={`w-14 h-14 rounded-lg flex items-center justify-center font-semibold text-lg ${
                     wasd.D
-                      ? "bg-emerald-500 text-black"
-                      : "bg-slate-800/40 text-slate-300"
+                      ? "bg-emerald-400 text-black"
+                      : "bg-slate-100 text-slate-700 dark:bg-slate-800/40 dark:text-slate-300"
                   }`}
                 >
                   D

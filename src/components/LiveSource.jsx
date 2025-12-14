@@ -1,6 +1,5 @@
-// src/components/LiveSource.jsx
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { atomDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import React, { useEffect, useRef, useState } from "react";
 import {
   FiPlay,
@@ -42,12 +41,41 @@ export default function LiveSource({
   const [filter, setFilter] = useState("all");
   const [codeVisible, setCodeVisible] = useState(true);
   const [code, setCode] = useState(initialCode ?? defaultCode);
+
+  // theme detection
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.classList.contains("dark");
+  });
+
   const streamRef = useRef(null);
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (initialCode) setCode(initialCode);
   }, [initialCode]);
+
+  // observe theme changes: listen to storage (other tabs) and to class mutations on <html>
+  useEffect(() => {
+    function onStorage(e) {
+      if (e.key === "theme") {
+        setIsDark(e.newValue === "dark");
+      }
+    }
+    window.addEventListener("storage", onStorage);
+
+    // MutationObserver to watch for .dark class toggles on <html>
+    const observer = new MutationObserver(() => {
+      const hasDark = document.documentElement.classList.contains("dark");
+      setIsDark(hasDark);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     function onEvent(e) {
@@ -80,10 +108,7 @@ export default function LiveSource({
   }, [events]);
 
   function appendEvent({ text, type = "info" }) {
-    setEvents((prev) => [
-      ...prev,
-      { id: Date.now() + Math.random(), text, type },
-    ]);
+    setEvents((prev) => [...prev, { id: Date.now() + Math.random(), text, type }]);
   }
 
   function clearEvents() {
@@ -115,9 +140,39 @@ export default function LiveSource({
     );
   }
 
-  const filtered = events.filter((ev) =>
-    filter === "all" ? true : ev.type === filter
-  );
+  const filtered = events.filter((ev) => (filter === "all" ? true : ev.type === filter));
+
+  // colors adaptive to theme
+  function colorForType(type) {
+    if (isDark) {
+      if (type === "success") return "#6ee7b7";
+      if (type === "warning") return "#fb923c";
+      if (type === "muted") return "#94a3b8";
+      return "#60a5fa"; // info
+    } else {
+      if (type === "success") return "#065f46"; // emerald-700
+      if (type === "warning") return "#b45309"; // orange-700
+      if (type === "muted") return "#6b7280"; // slate-500
+      return "#0f766e"; // teal-ish for info (or use #0369a1)
+    }
+  }
+
+  // adaptive scrollbar css (small and subtle)
+  const scrollbarCss = isDark
+    ? `
+      .live-source-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) #334155; }
+      .live-source-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+      .live-source-scroll::-webkit-scrollbar-track { background: #0b1220; }
+      .live-source-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 9999px; border: 2px solid transparent; background-clip: padding-box;}
+      .live-source-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.10); }
+    `
+    : `
+      .live-source-scroll { scrollbar-width: thin; scrollbar-color: rgba(15,23,42,0.06) #f1f5f9; }
+      .live-source-scroll::-webkit-scrollbar { width: 10px; height: 10px; }
+      .live-source-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+      .live-source-scroll::-webkit-scrollbar-thumb { background: rgba(2,6,23,0.06); border-radius: 9999px; border: 2px solid transparent; background-clip: padding-box;}
+      .live-source-scroll::-webkit-scrollbar-thumb:hover { background: rgba(2,6,23,0.10); }
+    `;
 
   // submit input (for demo, we just append to stream)
   function handleCommandSubmit(e) {
@@ -130,50 +185,29 @@ export default function LiveSource({
 
   return (
     <>
-      {/* Scrollbar styling: WebKit + Firefox.
-          Track set to tailwind's slate-700 approximate (#334155).
-          Thumb kept dark so it blends with theme.
-      */}
-      <style>{`
-        /* apply to any element with .live-source-scroll */
-        .live-source-scroll {
-          scrollbar-width: thin; /* firefox */
-          scrollbar-color: rgba(255,255,255,0.06) #334155; /* thumb track (thumb track) */
-        }
-        .live-source-scroll::-webkit-scrollbar {
-          width: 10px;
-          height: 10px;
-        }
-        .live-source-scroll::-webkit-scrollbar-track {
-          background: #334155; /* border-slate-700 */
-        }
-        .live-source-scroll::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,0.06);
-          border-radius: 9999px;
-          border: 2px solid transparent;
-          background-clip: padding-box;
-        }
-        /* optional: hover state for thumb */
-        .live-source-scroll::-webkit-scrollbar-thumb:hover {
-          background: rgba(255,255,255,0.10);
-        }
-      `}</style>
-      <div className="border-l border-[#223649] h-full">
-        <aside className="w-full md:w-[420px] bg-slate-900/80  rounded-none p-3 sticky top-14 h-[calc(100vh-56px)] flex flex-col">
-          {/* small header row like the screenshot */}
+      <style>{scrollbarCss}</style>
+
+      <div className={isDark ? "border-l border-[#223649] h-full" : "border-l border-slate-200 h-full"}>
+        <aside
+          className={
+            "w-full md:w-[420px] rounded-none p-3 sticky top-14 h-[calc(100vh-56px)] flex flex-col transition-colors duration-200 " +
+            (isDark ? "bg-slate-900 text-slate-200" : "bg-white text-slate-800")
+          }
+        >
+          {/* small header row */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <button
-                className="text-slate-400 hover:text-white p-1"
+                className={isDark ? "text-slate-400 hover:text-white p-1" : "text-slate-600 hover:text-slate-900 p-1"}
                 title="Back"
               >
                 <FiChevronLeft />
               </button>
               <div>
-                <div className="text-xs font-mono text-slate-400">
-                  LIVE SOURCE
+                <div className={isDark ? "text-xs font-mono text-slate-400" : "text-xs font-mono text-slate-500"}>
+                  {title}
                 </div>
-                <div className="text-sm font-semibold text-white -mt-0.5">
+                <div className={isDark ? "text-sm font-semibold text-white -mt-0.5" : "text-sm font-semibold text-slate-900 -mt-0.5"}>
                   Live event stream
                 </div>
               </div>
@@ -182,32 +216,32 @@ export default function LiveSource({
             {/* small status dot on the right */}
             <div className="flex items-center gap-2">
               <span
-                className="w-3 h-3 rounded-full bg-emerald-400 ring-1 ring-emerald-500/30"
+                className={isDark ? "w-3 h-3 rounded-full bg-emerald-400 ring-1 ring-emerald-500/30" : "w-3 h-3 rounded-full bg-emerald-500 ring-1 ring-emerald-200"}
                 title="connected"
               />
             </div>
           </div>
 
-          {/* Code pane — larger, dark, rounded */}
+          {/* Code pane */}
           {codeVisible && (
             <div className="mb-3">
-              <div className="relative rounded-lg bg-[#111217] border border-slate-800 overflow-hidden">
-                {/* small top bar for code area (file name / copy) */}
-                <div className="flex items-center justify-between px-3 py-2 border-b border-slate-800/60">
-                  <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+              <div className={isDark ? "relative rounded-lg bg-[#0b0d10] border border-slate-800 overflow-hidden" : "relative rounded-lg bg-slate-50 border border-slate-200 overflow-hidden"}>
+                {/* top bar */}
+                <div className={isDark ? "flex items-center justify-between px-3 py-2 border-b border-slate-800/60" : "flex items-center justify-between px-3 py-2 border-b border-slate-200"}>
+                  <div className={isDark ? "flex items-center gap-2 text-xs text-slate-400 font-mono" : "flex items-center gap-2 text-xs text-slate-500 font-mono"}>
                     <span className="inline-block w-2 h-2 rounded-sm bg-pink-500 mr-1" />
                     <span>src/demo.js</span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
-                      className="text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50"
+                      className={isDark ? "text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50" : "text-xs px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-100"}
                       onClick={copyCode}
                     >
                       <FiCopy className="inline-block mr-1" /> Copy
                     </button>
                     <button
-                      className="text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50"
+                      className={isDark ? "text-xs px-2 py-1 rounded border border-slate-800 text-slate-300 hover:bg-slate-800/50" : "text-xs px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-100"}
                       onClick={() => {
                         setCode(defaultCode);
                         appendEvent({
@@ -221,15 +255,14 @@ export default function LiveSource({
                   </div>
                 </div>
 
-                {/* --- REPLACED: code content now uses SyntaxHighlighter --- */}
                 <div className="live-source-scroll">
                   <SyntaxHighlighter
                     language="javascript"
-                    style={atomDark}
+                    style={isDark ? atomDark : oneLight}
                     showLineNumbers={false}
                     wrapLongLines={true}
                     customStyle={{
-                      background: "transparent", // keep container background
+                      background: "transparent",
                       margin: 0,
                       padding: "1rem",
                       maxHeight: "260px",
@@ -239,8 +272,7 @@ export default function LiveSource({
                     }}
                     codeTagProps={{
                       style: {
-                        fontFamily:
-                          "ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace",
+                        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace",
                       },
                     }}
                   >
@@ -251,25 +283,25 @@ export default function LiveSource({
             </div>
           )}
 
-          {/* small toolbar row (kept but visually subtle) */}
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
+          {/* toolbar */}
+          <div className={isDark ? "flex items-center justify-between text-xs text-slate-400 mb-2" : "flex items-center justify-between text-xs text-slate-500 mb-2"}>
             <div className="flex items-center gap-2">
               <button
-                className="text-slate-300 px-2 py-1 rounded bg-slate-800/50"
+                className={isDark ? "text-slate-300 px-2 py-1 rounded bg-slate-800/40" : "text-slate-700 px-2 py-1 rounded bg-slate-100"}
                 onClick={sendDemoEvent}
                 title="Send demo event"
               >
                 <FiPlay className="inline-block mr-1" /> Send
               </button>
               <button
-                className="px-2 py-1 rounded border border-slate-800 bg-slate-800/40"
+                className={isDark ? "px-2 py-1 rounded border border-slate-800 bg-slate-800/30 text-slate-300" : "px-2 py-1 rounded border border-slate-200 bg-white text-slate-600"}
                 onClick={clearEvents}
                 title="Clear stream"
               >
                 <FiTrash2 />
               </button>
               <button
-                className="px-2 py-1 rounded border border-slate-800 bg-slate-800/40"
+                className={isDark ? "px-2 py-1 rounded border border-slate-800 bg-slate-800/30 text-slate-300" : "px-2 py-1 rounded border border-slate-200 bg-white text-slate-600"}
                 onClick={exportEvents}
                 title="Export stream"
               >
@@ -278,9 +310,9 @@ export default function LiveSource({
             </div>
 
             <div className="flex items-center gap-2">
-              <FiFilter className="text-slate-500" />
+              <FiFilter className={isDark ? "text-slate-500" : "text-slate-400"} />
               <select
-                className="bg-slate-800/40 border border-slate-800 text-slate-300 text-xs rounded px-2 py-1"
+                className={isDark ? "bg-slate-800/40 border border-slate-800 text-slate-300 text-xs rounded px-2 py-1" : "bg-white border border-slate-200 text-slate-600 text-xs rounded px-2 py-1"}
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
               >
@@ -293,19 +325,18 @@ export default function LiveSource({
             </div>
           </div>
 
-          {/* Event stream header (thin divider with label + right-side control) */}
-          <div className="flex items-center justify-between px-2 py-1 text-xs text-slate-400 bg-transparent border-t border-b border-slate-800/40 mb-2">
+          {/* event stream header */}
+          <div className={isDark ? "flex items-center justify-between px-2 py-1 text-xs text-slate-400 bg-transparent border-t border-b border-slate-800/40 mb-2" : "flex items-center justify-between px-2 py-1 text-xs text-slate-500 bg-transparent border-t border-b border-slate-100 mb-2"}>
             <div className="flex items-center gap-2">
-              <span className="inline-block w-4 h-4 rounded bg-slate-800/60 flex items-center justify-center text-[10px] text-slate-300">
+              <span className={isDark ? "inline-block w-4 h-4 rounded bg-slate-800/60 flex items-center justify-center text-[10px] text-slate-300" : "inline-block w-4 h-4 rounded bg-slate-100 flex items-center justify-center text-[10px] text-slate-500"}>
                 ▣
               </span>
               <span className="font-mono">EVENT STREAM</span>
             </div>
 
             <div className="flex items-center gap-2">
-              {/* small circular icon on right matching screenshot */}
               <button
-                className="w-7 h-7 rounded-full bg-slate-800/50 flex items-center justify-center border border-slate-800 text-slate-300"
+                className={isDark ? "w-7 h-7 rounded-full bg-slate-800/50 flex items-center justify-center border border-slate-800 text-slate-300" : "w-7 h-7 rounded-full bg-white flex items-center justify-center border border-slate-200 text-slate-600"}
                 title="options"
               >
                 <FiChevronDown />
@@ -313,36 +344,29 @@ export default function LiveSource({
             </div>
           </div>
 
-          {/* STREAM LIST (fills remaining height) */}
+          {/* STREAM LIST */}
           <div
             ref={streamRef}
             className="flex-1 overflow-auto bg-transparent rounded-md px-1 live-source-scroll"
           >
             {filtered.length === 0 ? (
-              <div className="text-xs text-slate-400 p-3 text-center">
+              <div className={isDark ? "text-xs text-slate-400 p-3 text-center" : "text-xs text-slate-500 p-3 text-center"}>
                 No events yet — interact with the demo area.
               </div>
             ) : (
               filtered.map((ev) => (
                 <div
                   key={ev.id}
-                  className="px-3 py-2 rounded hover:bg-slate-800/40 transition flex flex-col gap-1"
+                  className={isDark ? "px-3 py-2 rounded hover:bg-slate-800/40 transition flex flex-col gap-1" : "px-3 py-2 rounded hover:bg-slate-50 transition flex flex-col gap-1"}
                 >
                   <div className="flex items-center gap-2">
-                    <div className="text-[11px] text-slate-500 font-mono w-20">
+                    <div className={isDark ? "text-[11px] text-slate-500 font-mono w-20" : "text-[11px] text-slate-400 font-mono w-20"}>
                       {new Date(ev.id).toLocaleTimeString()}
                     </div>
                     <div
                       className="flex-1 text-xs font-mono break-words"
                       style={{
-                        color:
-                          ev.type === "success"
-                            ? "#6ee7b7"
-                            : ev.type === "warning"
-                            ? "#fb923c"
-                            : ev.type === "muted"
-                            ? "#94a3b8"
-                            : "#60a5fa",
+                        color: colorForType(ev.type),
                       }}
                     >
                       {ev.text}
@@ -353,14 +377,11 @@ export default function LiveSource({
             )}
           </div>
 
-          {/* bottom input area (small) */}
-          <form
-            onSubmit={handleCommandSubmit}
-            className="mt-2 flex items-center gap-2"
-          >
+          {/* bottom input area */}
+          <form onSubmit={handleCommandSubmit} className="mt-2 flex items-center gap-2">
             <button
               type="button"
-              className="text-slate-400 text-xs flex items-center px-2 py-2"
+              className={isDark ? "text-slate-400 text-xs flex items-center px-2 py-2" : "text-slate-600 text-xs flex items-center px-2 py-2"}
               title="toggle"
             >
               <FiChevronRight />
@@ -368,12 +389,9 @@ export default function LiveSource({
             <input
               ref={inputRef}
               placeholder="Type JS command..."
-              className="flex-1 bg-slate-800/50 border border-slate-800 text-slate-300 text-xs px-3 py-2 rounded outline-none focus:ring-1 focus:ring-sky-500"
+              className={isDark ? "flex-1 bg-slate-800/50 border border-slate-800 text-slate-300 text-xs px-3 py-2 rounded outline-none focus:ring-1 focus:ring-sky-500" : "flex-1 bg-white border border-slate-200 text-slate-700 text-xs px-3 py-2 rounded outline-none focus:ring-1 focus:ring-sky-500"}
             />
-            <button
-              type="submit"
-              className="text-xs px-3 py-2 rounded bg-sky-600 text-white"
-            >
+            <button type="submit" className="text-xs px-3 py-2 rounded bg-sky-600 text-white">
               Run
             </button>
           </form>

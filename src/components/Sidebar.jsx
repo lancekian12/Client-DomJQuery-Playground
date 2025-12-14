@@ -8,23 +8,25 @@ export default function Sidebar({
   onReset = () => {},
   isDesktopStatic = false,
 }) {
-  const baseBg = "bg-slate-800/90 dark:bg-slate-900/95 border-r border-slate-700";
+  // Light = white canvas, Dark keeps your existing dark style
+  const baseBg =
+    "bg-white dark:bg-slate-800/90 border-r border-slate-200 dark:border-slate-700";
 
-const items = [
-  { to: "/", label: "Mouse Events", icon: MdMouse },
-  { to: "/keyboard", label: "Keyboard Events", icon: MdKeyboard },
-  { to: "/form", label: "Form Inputs", icon: MdListAlt },
-  { to: "/window", label: "Window Events", icon: MdWebAsset },
-  { to: "/effects", label: "jQuery Effects", icon: MdAutoFixHigh },
-];
+  const items = [
+    { to: "/", label: "Mouse Events", icon: MdMouse },
+    { to: "/keyboard", label: "Keyboard Events", icon: MdKeyboard },
+    { to: "/form", label: "Form Inputs", icon: MdListAlt },
+    { to: "/window", label: "Window Events", icon: MdWebAsset },
+    { to: "/effects", label: "jQuery Effects", icon: MdAutoFixHigh },
+  ];
 
   // static desktop sidebar (in layout flow)
   if (isDesktopStatic) {
     return (
-      <aside className={`hidden md:flex flex-col w-64 ${baseBg} ]`}>
+      <aside className={`hidden md:flex flex-col w-64 ${baseBg}`}>
         <nav className="flex flex-col h-full">
           <div className="overflow-y-auto px-4 py-6 flex-1">
-            <div className="text-slate-300 uppercase tracking-wide text-xs font-semibold mb-4">
+            <div className="text-slate-600 dark:text-slate-300 uppercase tracking-wide text-xs font-semibold mb-4">
               Event Categories
             </div>
 
@@ -37,8 +39,10 @@ const items = [
                     className={({ isActive }) =>
                       `group flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${
                         isActive
-                          ? "bg-sky-700/90 text-white shadow-inner"
-                          : "text-slate-300 hover:bg-slate-700/20 hover:text-white"
+                          ? // Active: soft sky accent on light, bold on dark
+                            "bg-sky-50 text-sky-700 dark:bg-sky-700/90 dark:text-white shadow-inner"
+                          : // Default: muted text on light, light-muted on dark
+                            "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/70"
                       }`
                     }
                   >
@@ -53,9 +57,12 @@ const items = [
           </div>
 
           {/* footer: Docs + Reset — hidden on desktop static as requested */}
-          <div className="p-4 border-t border-slate-700 hidden">
+          <div className="p-4 border-t border-slate-200 dark:border-slate-700 hidden">
             <div className="flex items-center justify-between gap-3">
-              <NavLink to="/docs" className="text-slate-300 hover:text-white text-sm">
+              <NavLink
+                to="/docs"
+                className="text-slate-700 dark:text-slate-300 hover:underline text-sm"
+              >
                 Docs
               </NavLink>
 
@@ -92,6 +99,7 @@ const items = [
 
   return (
     <>
+      {/* Backdrop (mobile) */}
       <div
         aria-hidden={!isOpen}
         onClick={() => onClose(false)}
@@ -99,7 +107,7 @@ const items = [
           isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       >
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-black/40" />
       </div>
 
       <aside
@@ -109,21 +117,30 @@ const items = [
         aria-hidden={!isOpen}
       >
         <nav className="relative flex flex-col h-full md:min-h-[calc(100vh-56px)]">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 md:border-b-0">
-            <div className="text-lg font-semibold text-slate-100">EventMaster</div>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+            <div className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+              EventMaster
+            </div>
             <button
               onClick={() => onClose(false)}
               aria-label="Close sidebar"
-              className="md:hidden p-2 rounded-md hover:bg-slate-700/30"
+              className="md:hidden p-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/60"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-slate-200">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                className="text-slate-600 dark:text-slate-200"
+                aria-hidden
+              >
                 <path d="M6 6l12 12M6 18L18 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
             </button>
           </div>
 
           <div className="px-4 py-6 overflow-y-auto flex-1 pb-28 md:pb-4 md:overflow-visible">
-            <div className="text-slate-300 uppercase tracking-wide text-xs font-semibold mb-4">
+            <div className="text-slate-600 dark:text-slate-300 uppercase tracking-wide text-xs font-semibold mb-4">
               Event Categories
             </div>
 
@@ -138,7 +155,9 @@ const items = [
                     }}
                     className={({ isActive }) =>
                       `group flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm ${
-                        isActive ? "bg-sky-700/90 text-white shadow-inner" : "text-slate-300 hover:bg-slate-700/20 hover:text-white"
+                        isActive
+                          ? "bg-sky-50 text-sky-700 dark:bg-sky-700/90 dark:text-white shadow-inner"
+                          : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800/70"
                       }`
                     }
                   >
@@ -153,12 +172,12 @@ const items = [
           </div>
 
           {/* footer: visible only on mobile (hidden on md and up) */}
-          <div className="absolute left-0 right-0 bottom-0 md:relative md:mt-auto bg-slate-900/95 md:bg-transparent border-t border-slate-700 p-4 md:hidden">
+          <div className="absolute left-0 right-0 bottom-0 md:relative md:mt-auto bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 p-4 md:hidden">
             <div className="flex items-center justify-between gap-3">
               <NavLink
                 to="/docs"
                 onClick={() => onClose(false)}
-                className="text-slate-300 hover:text-white text-sm"
+                className="text-slate-700 dark:text-slate-300 hover:underline text-sm"
               >
                 Docs
               </NavLink>

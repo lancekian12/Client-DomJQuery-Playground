@@ -1,4 +1,3 @@
-// src/components/Window.jsx
 import React, { useEffect, useState } from "react";
 import {
   MdDesktopWindows,
@@ -122,14 +121,14 @@ window.addEventListener("beforeunload", (e) => {
   }, [beforeUnloadActive]);
 
   return (
-    <main className="flex-1 overflow-y-auto p-6 lg:p-10">
+    <main className="flex-1 overflow-y-auto p-6 lg:p-10  text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-200">
       <div className="max-w-6xl mx-auto flex flex-col gap-6">
         {/* TITLE */}
         <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-bold text-white tracking-tight">
+          <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
             Window &amp; BOM Events
           </h2>
-          <p className="text-slate-400">
+          <p className="text-slate-700 dark:text-slate-400">
             Monitor viewport dimensions, scroll positions, and page lifecycle
             events in real-time by interacting with the browser window.
           </p>
@@ -138,22 +137,22 @@ window.addEventListener("beforeunload", (e) => {
         {/* MAIN: left large panel (full-width). Inspector moved below */}
         <section className="grid grid-cols-1 gap-6">
           {/* LEFT (main) */}
-          <div className="rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col gap-6">
+          <div className="rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-6 flex flex-col gap-6 transition-colors duration-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
-                <span className="p-1 rounded bg-slate-900/50 text-primary">
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900 dark:text-white">
+                <span className="p-1 rounded bg-slate-50 dark:bg-slate-900/50 text-sky-600 dark:text-sky-400">
                   <MdDesktopWindows />
                 </span>
                 Window Interaction Lab
               </h3>
               <div className="flex gap-2">
-                <span className="text-xs font-mono bg-slate-800/60 text-slate-300 px-2 py-1 rounded border border-slate-700">
+                <span className="text-xs font-mono bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:text-slate-300 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">
                   window
                 </span>
-                <span className="text-xs font-mono bg-slate-800/60 text-orange-300 px-2 py-1 rounded border border-orange-400/40">
+                <span className="text-xs font-mono bg-slate-100 text-orange-700 dark:bg-slate-800/60 dark:text-orange-300 px-2 py-1 rounded border border-orange-200 dark:border-orange-400/40">
                   onresize
                 </span>
-                <span className="text-xs font-mono bg-slate-800/60 text-purple-300 px-2 py-1 rounded border border-purple-400/40">
+                <span className="text-xs font-mono bg-slate-100 text-purple-700 dark:bg-slate-800/60 dark:text-purple-300 px-2 py-1 rounded border border-purple-200 dark:border-purple-400/40">
                   onscroll
                 </span>
               </div>
@@ -161,36 +160,36 @@ window.addEventListener("beforeunload", (e) => {
 
             {/* VIEWPORT + SCROLL */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="rounded-lg bg-slate-900/40 border border-slate-700 p-4 flex flex-col gap-3">
-                <div className="text-xs text-slate-400 uppercase font-mono">
+              <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 flex flex-col gap-3 dark:bg-slate-900/40 dark:border-slate-700">
+                <div className="text-xs text-slate-600 uppercase font-mono">
                   Viewport Size
                 </div>
-                <div className="text-3xl font-bold text-white">
+                <div className="text-3xl font-bold text-slate-900 dark:text-white">
                   {viewport.width}
                   <span className="text-slate-400 mx-1">×</span>
                   {viewport.height}
                 </div>
-                <div className="text-xs text-sky-400 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-sky-400" />
+                <div className="text-xs text-sky-600 flex items-center gap-1 dark:text-sky-400">
+                  <span className="w-2 h-2 rounded-full bg-sky-600 dark:bg-sky-400" />
                   Monitoring changes…
                 </div>
               </div>
 
-              <div className="rounded-lg bg-slate-900/40 border border-slate-700 p-4 flex flex-col gap-3">
-                <div className="text-xs text-slate-400 uppercase font-mono">
+              <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 flex flex-col gap-3 dark:bg-slate-900/40 dark:border-slate-700">
+                <div className="text-xs text-slate-600 uppercase font-mono">
                   Scroll Position
                 </div>
-                <div className="flex justify-between text-white font-semibold">
+                <div className="flex justify-between text-slate-900 font-semibold dark:text-white">
                   <div>
-                    <span className="text-xs text-slate-400 block">X-Axis</span>
+                    <span className="text-xs text-slate-500 block">X-Axis</span>
                     {scroll.x}
                   </div>
                   <div>
-                    <span className="text-xs text-slate-400 block">Y-Axis</span>
+                    <span className="text-xs text-slate-500 block">Y-Axis</span>
                     {scroll.y}
                   </div>
                 </div>
-                <div className="h-1 rounded bg-slate-700 overflow-hidden">
+                <div className="h-1 rounded bg-slate-200 overflow-hidden dark:bg-slate-700">
                   <div
                     className="h-full bg-sky-500"
                     style={{ width: `${Math.min(scroll.y / 5, 100)}%` }}
@@ -200,18 +199,18 @@ window.addEventListener("beforeunload", (e) => {
             </div>
 
             {/* STATE */}
-            <div className="rounded-lg bg-slate-900/40 border border-slate-700 p-4 flex flex-wrap gap-4 items-center">
-              <div className="flex items-center gap-2 text-sm text-slate-300">
-                <MdCheckCircle className="text-emerald-400" />
+            <div className="rounded-lg bg-slate-50 border border-slate-200 p-4 flex flex-wrap gap-4 items-center dark:bg-slate-900/40 dark:border-slate-700">
+              <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                <MdCheckCircle className="text-emerald-600" />
                 DOM Ready
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-300">
-                <MdCheckCircle className="text-emerald-400" />
+              <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                <MdCheckCircle className="text-emerald-600" />
                 Window Loaded
               </div>
-              <div className="text-xs px-2 py-1 rounded bg-slate-800/60 border border-slate-700 text-slate-300">
+              <div className="text-xs px-2 py-1 rounded bg-slate-100 border border-slate-200 text-slate-700 dark:bg-slate-800/60 dark:border-slate-700 dark:text-slate-300">
                 STATE:{" "}
-                <span className="text-emerald-400 font-semibold">
+                <span className="text-emerald-600 font-semibold dark:text-emerald-400">
                   {lifecycle.focused ? "Focused" : "Blurred"}
                 </span>
               </div>
@@ -221,7 +220,7 @@ window.addEventListener("beforeunload", (e) => {
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded bg-slate-800/60 border border-slate-700 text-slate-200 text-sm"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded bg-slate-50 border border-slate-200 text-slate-700 text-sm dark:bg-slate-800/60 dark:border-slate-700 dark:text-slate-200"
               >
                 <MdArrowUpward /> Scroll Top
               </button>
@@ -232,13 +231,13 @@ window.addEventListener("beforeunload", (e) => {
                     behavior: "smooth",
                   })
                 }
-                className="inline-flex items-center gap-2 px-3 py-2 rounded bg-slate-800/60 border border-slate-700 text-slate-200 text-sm"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded bg-slate-50 border border-slate-200 text-slate-700 text-sm dark:bg-slate-800/60 dark:border-slate-700 dark:text-slate-200"
               >
                 <MdArrowDownward /> Scroll Bottom
               </button>
               <button
                 onClick={() => window.print()}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded bg-slate-800/60 border border-slate-700 text-slate-200 text-sm"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded bg-slate-50 border border-slate-200 text-slate-700 text-sm dark:bg-slate-800/60 dark:border-slate-700 dark:text-slate-200"
               >
                 <MdPrint /> Print Window
               </button>
@@ -249,8 +248,8 @@ window.addEventListener("beforeunload", (e) => {
                 onClick={() => setBeforeUnloadActive((s) => !s)}
                 className={`inline-flex items-center gap-2 px-3 py-2 rounded border text-sm ${
                   beforeUnloadActive
-                    ? "bg-amber-500/20 border-amber-400 text-amber-300"
-                    : "bg-slate-800/40 border-slate-700 text-slate-300"
+                    ? "bg-amber-100 border-amber-300 text-amber-700"
+                    : "bg-slate-50 border border-slate-200 text-slate-700 dark:bg-slate-800/40 dark:border-slate-700 dark:text-slate-300"
                 }`}
               >
                 <MdWarningAmber />
@@ -260,32 +259,32 @@ window.addEventListener("beforeunload", (e) => {
           </div>
 
           {/* EVENT INSPECTOR moved below so you can scroll down */}
-          <div className="rounded-xl border border-[#223649] bg-slate-800/60 p-4 flex flex-col gap-3">
-            <div className="text-xs font-mono text-slate-400">EVENT INSPECTOR</div>
+          <div className="rounded-xl border border-slate-200 bg-white dark:border-[#223649] dark:bg-slate-800/60 p-4 flex flex-col gap-3 transition-colors duration-200">
+            <div className="text-xs font-mono text-slate-600 dark:text-slate-400">EVENT INSPECTOR</div>
 
             <div>
-              <div className="text-xs text-slate-400">Last Event Type</div>
-              <div className="text-sky-400 font-semibold">
+              <div className="text-xs text-slate-600 dark:text-slate-400">Last Event Type</div>
+              <div className="text-sky-600 font-semibold dark:text-sky-400">
                 {inspector.lastEvent}
               </div>
             </div>
 
             <div>
-              <div className="text-xs text-slate-400">Target</div>
-              <div className="bg-slate-900/40 border border-slate-700 rounded px-2 py-1 text-slate-300 font-mono">
+              <div className="text-xs text-slate-600 dark:text-slate-400">Target</div>
+              <div className="bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 font-mono dark:bg-slate-900/40 dark:border-slate-700 dark:text-slate-300">
                 {inspector.target}
               </div>
             </div>
 
             <div>
-              <div className="text-xs text-slate-400">Captured Data</div>
-              <pre className="bg-slate-900/40 border border-slate-700 rounded p-2 text-xs text-slate-200 overflow-x-auto">
+              <div className="text-xs text-slate-600 dark:text-slate-400">Captured Data</div>
+              <pre className="bg-slate-50 border border-slate-200 rounded p-2 text-xs text-slate-700 overflow-x-auto dark:bg-slate-900/40 dark:border-slate-700 dark:text-slate-200">
 {JSON.stringify(inspector.data, null, 2)}
               </pre>
             </div>
 
-            <div className="mt-2 text-xs text-slate-400">
-              <span className="font-semibold text-slate-300">
+            <div className="mt-2 text-xs text-slate-700 dark:text-slate-400">
+              <span className="font-semibold text-slate-800 dark:text-slate-300">
                 UNLOAD PROTECTION
               </span>
               <p className="mt-1">
