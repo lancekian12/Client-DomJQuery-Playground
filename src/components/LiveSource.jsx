@@ -23,12 +23,8 @@ import {
  *  - initialCode (string)
  *  - mobile (boolean)
  *
- * Notes:
- *  - Desktop markup & styles are unchanged (keeps desktop design exactly).
- *  - Mobile renders that same markup inside a bottom-sheet wrapper and
- *    attaches drag handlers on the header to set the sheet top (height).
- *  - This implementation intentionally avoids snapping-to-fullscreen;
- *    it clamps the open height so it never becomes full-screen.
+ * Desktop UI unchanged. Mobile sheet drag is attached to the small center handle bar
+ * so clicks on toolbar buttons won't start a drag.
  */
 export default function LiveSource({
   title = "LIVE SOURCE",
@@ -154,7 +150,6 @@ export default function LiveSource({
 
   const filtered = events.filter((ev) => (filter === "all" ? true : ev.type === filter));
 
-  // theming colors
   function colorForType(type) {
     if (isDark) {
       if (type === "success") return "#6ee7b7";
@@ -169,7 +164,6 @@ export default function LiveSource({
     }
   }
 
-  // scrollbars
   const scrollbarCss = isDark
     ? `
       .live-source-scroll { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.06) #334155; }
@@ -194,27 +188,24 @@ export default function LiveSource({
     inputRef.current.value = "";
   }
 
-  // ------------------ Mobile sheet drag (simple flexible) ------------------
-  // Use header area of the aside as the drag handle (so the UI looks identical to desktop)
+  // ------------------ Mobile sheet drag (handle-only) ------------------
   const sheetRef = useRef(null);
   const dragging = useRef(false);
   const startYRef = useRef(0);
   const startTopRef = useRef(0);
   const [vh, setVh] = useState(typeof window !== "undefined" ? window.innerHeight : 800);
 
-  // initial collapsed top - change this number to control how much of the pane shows when collapsed
-  const collapsedOffset = 160; // px from bottom (shows ~160px of sheet in collapsed state)
+  // initial collapsed top - how much sheet shows when collapsed
+  const collapsedOffset = 160; // tweak to 64 if you want less visible
   const [topPos, setTopPos] = useState((typeof window !== "undefined" ? window.innerHeight : 800) - collapsedOffset);
 
   useEffect(() => {
     function onResize() {
       setVh(window.innerHeight);
-      // keep topPos in new bounds
       setTopPos((t) => clamp(t, minTopFor(window.innerHeight), window.innerHeight - 64));
     }
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -226,24 +217,21 @@ export default function LiveSource({
     return Math.min(Math.max(v, a), b);
   }
 
-  // Prevent full-screen: set a reasonable minimum top (so sheet cannot become absolute-fullscreen)
   function minTopFor(viewportHeight) {
-    // keep at least 120px space above sheet when fully expanded — tweak as needed;
-    // if you want to allow closer-to-fullscreen use a smaller number.
     return Math.max(80, Math.round(viewportHeight * 0.08));
   }
 
-  // pointer handlers: we attach these directly on the header element inside the aside,
-  // start listening on document so pointer move/up still work if finger/mouse leaves the element.
-  function onHeaderPointerDown(ev) {
+  // Start drag when the user presses the small center handle (NOT the whole header)
+  function onHandlePointerDown(ev) {
     if (!mobile) return;
+    // avoid starting drag when pressing actual buttons inside handle area (rare) — only react to primary pointer
+    if (ev.button && ev.button !== 0) return;
     ev.preventDefault();
     dragging.current = true;
     const clientY = ev.clientY ?? (ev.touches && ev.touches[0] && ev.touches[0].clientY);
     startYRef.current = clientY;
     startTopRef.current = topPos;
 
-    // attach move/up on window/document so drag continues if pointer leaves the header
     window.addEventListener("pointermove", onWindowPointerMove);
     window.addEventListener("pointerup", onWindowPointerUp);
     window.addEventListener("touchmove", onWindowPointerMove, { passive: false });
@@ -258,25 +246,23 @@ export default function LiveSource({
     const dy = clientY - startYRef.current;
     const newTop = startTopRef.current + dy;
     const minTop = minTopFor(window.innerHeight);
-    const maxTop = window.innerHeight - 64; // when sheet collapsed slightly (reserve 64px)
+    const maxTop = window.innerHeight - 64;
     setTopPos(clamp(newTop, minTop, maxTop));
   }
 
-  function onWindowPointerUp(e) {
+  function onWindowPointerUp() {
     if (!dragging.current) return;
     dragging.current = false;
-    // remove listeners
     window.removeEventListener("pointermove", onWindowPointerMove);
     window.removeEventListener("pointerup", onWindowPointerUp);
     window.removeEventListener("touchmove", onWindowPointerMove);
     window.removeEventListener("touchend", onWindowPointerUp);
-    // keep the sheet where user left it (no snapping) so it's "flexible"
+    // leave sheet where released (no snap)
   }
 
   const isCollapsed = mobile && topPos > vh - 140;
 
-  // ============ AsideInner (exact same desktop UI) ============
-  // We keep the exact markup used on desktop. The header area includes the pointer-down handler on mobile.
+  // ============ AsideInner (desktop markup unchanged) ============
   const AsideInner = (
     <aside
       className={
@@ -285,12 +271,8 @@ export default function LiveSource({
       }
       style={{ minHeight: 0 }}
     >
-      {/* small header row (this is also the mobile drag handle) */}
-      <div
-        className="flex items-center justify-between mb-3"
-        onPointerDown={mobile ? onHeaderPointerDown : undefined}
-        // Note: pointerdown only starts the drag; actual movement handled on window pointermove
-      >
+      {/* small header row (no drag handler here) */}
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <button
             className={isDark ? "text-slate-400 hover:text-white p-1" : "text-slate-600 hover:text-slate-900 p-1"}
@@ -308,7 +290,6 @@ export default function LiveSource({
           </div>
         </div>
 
-        {/* small status dot on the right */}
         <div className="flex items-center gap-2">
           <span
             className={isDark ? "w-3 h-3 rounded-full bg-emerald-400 ring-1 ring-emerald-500/30" : "w-3 h-3 rounded-full bg-emerald-500 ring-1 ring-emerald-200"}
@@ -321,7 +302,6 @@ export default function LiveSource({
       {codeVisible && (
         <div className="mb-3">
           <div className={isDark ? "relative rounded-lg bg-[#0b0d10] border border-slate-800 overflow-hidden" : "relative rounded-lg bg-slate-50 border border-slate-200 overflow-hidden"}>
-            {/* top bar */}
             <div className={isDark ? "flex items-center justify-between px-3 py-2 border-b border-slate-800/60" : "flex items-center justify-between px-3 py-2 border-b border-slate-200"}>
               <div className={isDark ? "flex items-center gap-2 text-xs text-slate-400 font-mono" : "flex items-center gap-2 text-xs text-slate-500 font-mono"}>
                 <span className="inline-block w-2 h-2 rounded-sm bg-pink-500 mr-1" />
@@ -500,7 +480,7 @@ export default function LiveSource({
     <>
       <style>{scrollbarCss}</style>
 
-      {/* desktop: unchanged, exact markup */}
+      {/* desktop: unchanged */}
       {!mobile && (
         <div className={isDark ? "border-l border-[#223649] h-full" : "border-l border-slate-200 h-full"}>
           <div
@@ -515,7 +495,7 @@ export default function LiveSource({
         </div>
       )}
 
-      {/* mobile bottom-sheet: same AsideInner inside; header area of AsideInner is the drag handle */}
+      {/* mobile bottom-sheet: drag ONLY via the small center handle */}
       {mobile && (
         <div
           ref={sheetRef}
@@ -535,12 +515,18 @@ export default function LiveSource({
             role="region"
             aria-label="Live event stream"
           >
-            {/* small visual handle under header (purely visual) */}
+            {/* small visual handle under header: this is the drag handle now */}
             <div className="w-full flex justify-center" style={{ paddingTop: 6 }}>
-              <div style={{ width: 40, height: 4, borderRadius: 999 }} className={isDark ? "bg-slate-700 mb-2" : "bg-slate-200 mb-2"} />
+              <div
+                onPointerDown={mobile ? onHandlePointerDown : undefined}
+                style={{ width: 80, height: 20, display: "flex", alignItems: "center", justifyContent: "center", touchAction: "none" }}
+                aria-hidden="true"
+              >
+                <div style={{ width: 40, height: 4, borderRadius: 999 }} className={isDark ? "bg-slate-700" : "bg-slate-200"} />
+              </div>
             </div>
 
-            {/* content area - AsideInner (header inside AsideInner is the drag handle) */}
+            {/* content area */}
             <div style={{ flex: 1, minHeight: 0, overflow: "hidden" }}>
               {AsideInner}
             </div>
