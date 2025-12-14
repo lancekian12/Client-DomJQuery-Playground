@@ -1,9 +1,6 @@
 // src/components/Keyboard.jsx
 import React, { useEffect, useRef, useState } from "react";
-import { FiType } from "react-icons/fi";
-import { FiCornerDownRight } from "react-icons/fi";
-import { FaGamepad } from "react-icons/fa";
-import { MdSportsEsports } from "react-icons/md";
+import { MdKeyboard, MdKeyboardArrowDown, MdSportsEsports} from "react-icons/md";
 
 export default function Keyboard() {
   const [keyInfo, setKeyInfo] = useState({ key: "", code: "", which: null });
@@ -116,7 +113,7 @@ window.addEventListener("keydown", (e) => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold flex items-center gap-2 text-white">
               <span className="p-1 rounded bg-slate-900/50 text-primary">
-                <FiType />
+                <MdKeyboard />
               </span>
               Keyboard Interaction Lab
             </h3>
@@ -133,7 +130,7 @@ window.addEventListener("keydown", (e) => {
             <div className="md:col-span-2 rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col gap-4 relative">
               <div className="flex items-start gap-3">
                 <div className="p-3 rounded-full bg-slate-900/60 text-primary">
-                  <FiType size={20} />
+                  <MdKeyboard size={20} />
                 </div>
                 <div>
                   <h4 className="font-semibold text-white">Key Capture</h4>
@@ -184,7 +181,7 @@ window.addEventListener("keydown", (e) => {
             {/* Modifier Test */}
             <div className="rounded-xl border border-[#223649] bg-slate-800/60 p-6 flex flex-col gap-4 items-center justify-center">
               <div className="p-3 rounded-full bg-slate-900/60 text-yellow-300">
-                <FiCornerDownRight size={22} />
+                <MdKeyboardArrowDown size={22} />
               </div>
               <h4 className="font-semibold text-white">Modifier Test</h4>
               <p className="text-xs text-slate-400 text-center max-w-[220px]">

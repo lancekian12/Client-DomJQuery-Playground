@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { FaMouse, FaKeyboard, FaRegListAlt, FaMagic } from "react-icons/fa";
+import { MdMouse, MdKeyboard, MdListAlt, MdAutoFixHigh, MdWebAsset } from "react-icons/md";
 
 export default function Sidebar({
   isOpen = true,
@@ -10,12 +10,13 @@ export default function Sidebar({
 }) {
   const baseBg = "bg-slate-800/90 dark:bg-slate-900/95 border-r border-slate-700";
 
-  const items = [
-    { to: "/", label: "Mouse Events", icon: FaMouse },
-    { to: "/keyboard", label: "Keyboard Events", icon: FaKeyboard },
-    { to: "/form", label: "Form Inputs", icon: FaRegListAlt },
-    { to: "/effects", label: "jQuery Effects", icon: FaMagic },
-  ];
+const items = [
+  { to: "/", label: "Mouse Events", icon: MdMouse },
+  { to: "/keyboard", label: "Keyboard Events", icon: MdKeyboard },
+  { to: "/form", label: "Form Inputs", icon: MdListAlt },
+  { to: "/window", label: "Window Events", icon: MdWebAsset },
+  { to: "/effects", label: "jQuery Effects", icon: MdAutoFixHigh },
+];
 
   // static desktop sidebar (in layout flow)
   if (isDesktopStatic) {
